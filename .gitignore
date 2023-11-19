@@ -1,0 +1,7 @@
+*.zip
+*.rar
+
+.ipynb_checkpoints
+.venv
+__pycache__
+Tekstovi
