@@ -2,6 +2,7 @@ import unittest
 
 from bandit import *
 
+
 class TestMultiarmBandits(unittest.TestCase):
     """
     A class for testing multiarm bandit
@@ -17,9 +18,9 @@ class TestMultiarmBandits(unittest.TestCase):
         test_bandit = Bandit(test_mean, test_span)
         test_rewards = [test_bandit.pull_leaver() for _ in range(test_len)]
         
-        plt.plot(test_rewards, label = 'rewards')
-        plt.plot((test_mean + test_span) * np.ones(test_len), linestyle = '--', color = 'red')
-        plt.plot((test_mean - test_span) * np.ones(test_len), linestyle = '--', color = 'red')
+        plt.plot(test_rewards, label='rewards')
+        plt.plot((test_mean + test_span) * np.ones(test_len), linestyle='--', color='red')
+        plt.plot((test_mean - test_span) * np.ones(test_len), linestyle='--', color='red')
 
         plt.show()
 
@@ -35,9 +36,9 @@ class TestMultiarmBandits(unittest.TestCase):
         selected_bandit = 4
         test_rewards = [test_env.take_action(selected_bandit) for _ in range(test_len)]
 
-        plt.plot(test_rewards, label = 'rewards')
-        plt.plot((selected_bandit**2 + selected_bandit) * np.ones(test_len), linestyle = '--' , color = 'r')
-        plt.plot((selected_bandit**2 - selected_bandit) * np.ones(test_len), linestyle = '--' , color = 'r')
+        plt.plot(test_rewards, label='rewards')
+        plt.plot((selected_bandit**2 + selected_bandit) * np.ones(test_len), linestyle='--', color='r')
+        plt.plot((selected_bandit**2 - selected_bandit) * np.ones(test_len), linestyle='--', color='r')
 
         plt.show()
 
@@ -67,7 +68,7 @@ class TestMultiarmBandits(unittest.TestCase):
         BANDITS_NO = 5
         ATTEMPTS_NO = 10000
 
-        bandits = [Bandit(10 * (random.random() - 0.5), 5 * random.random()) for i in range(BANDITS_NO)]
+        bandits = [Bandit(10 * (random.random() - 0.5), 5 * random.random()) for _ in range(BANDITS_NO)]
         sys = System(bandits)
 
         #  *** 1. zadatak *** 
@@ -80,7 +81,7 @@ class TestMultiarmBandits(unittest.TestCase):
         test_eps = [0.7, 0.4, 0.1, 0.01]
         
         for eps in test_eps:
-            q, q_evol, old_bandit_mean = sys.run_system(eps=eps, ATTEMPTS_NO = ATTEMPTS_NO)
+            q, q_evol, old_bandit_mean = sys.run_system(eps=eps, ATTEMPTS_NO=ATTEMPTS_NO)
             plotter = ConvergencePlot(q_evol=q_evol, eps=0.1, ATTEMPTS_NO=ATTEMPTS_NO)
             plotter.plot(env=sys.env)
 
@@ -92,7 +93,7 @@ class TestMultiarmBandits(unittest.TestCase):
         test_eps = [0.1, 0.0]
         
         for eps in test_eps:
-            q, q_evol, old_bandit_mean = sys.run_system(eps = eps, ATTEMPTS_NO = ATTEMPTS_NO)
+            q, q_evol, old_bandit_mean = sys.run_system(eps=eps, ATTEMPTS_NO=ATTEMPTS_NO)
             
         # *** 3. zadatak ***
         # Šta ako su karakteristike bandita promjenljive u vremenu?
@@ -106,11 +107,10 @@ class TestMultiarmBandits(unittest.TestCase):
 
         print('*** 3. zadatak ***')
 
-        bandits = [Bandit(10 * (random.random() - 0.5), 5 * random.random()) for i in range(BANDITS_NO)]
-        sys = System(bandits, stationary = False)
+        bandits = [Bandit(10 * (random.random() - 0.5), 5 * random.random()) for _ in range(BANDITS_NO)]
+        sys = System(bandits, stationary=False)
         CHANGE_AT = [4000, 6000, 9000]
-        q, q_evol, old_bandit_mean = sys.run_system(eps = 0.1, CHANGE_AT=CHANGE_AT)
-
+        q, q_evol, old_bandit_mean = sys.run_system(eps=0.1, CHANGE_AT=CHANGE_AT)
 
         # *** 4. zadatak ***
         # Konvergencija Q vrijednosti ka srednjoj vrijednosti bandita. U ovom slučaju
@@ -121,8 +121,10 @@ class TestMultiarmBandits(unittest.TestCase):
         plotter = ConvergencePlot(q_evol=q_evol, eps=0.1, ATTEMPTS_NO=ATTEMPTS_NO)
         plotter.plot(env=sys.env, CHANGE_AT=CHANGE_AT, old_bandit_mean=old_bandit_mean)
 
+
 def main() -> None:
     unittest.main()
+
 
 if __name__ == '__main__':
     print("Hi! I am testing these bandits!")
