@@ -7,6 +7,7 @@ class TestMultiarmBandits(unittest.TestCase):
     """
     A class for testing multiarm bandit
     """
+
     def test_single_bandit(self) -> None:
         """
         Testing a single bandit.
@@ -17,7 +18,7 @@ class TestMultiarmBandits(unittest.TestCase):
 
         test_bandit = Bandit(test_mean, test_span)
         test_rewards = [test_bandit.pull_leaver() for _ in range(test_len)]
-        
+
         plt.plot(test_rewards, label='rewards')
         plt.plot((test_mean + test_span) * np.ones(test_len), linestyle='--', color='red')
         plt.plot((test_mean - test_span) * np.ones(test_len), linestyle='--', color='red')
@@ -29,7 +30,7 @@ class TestMultiarmBandits(unittest.TestCase):
         Testing bandits' environment. 
         """
         test_env_size = 5
-        test_bandits = [Bandit(i**2, i) for i in range(test_env_size)]
+        test_bandits = [Bandit(i ** 2, i) for i in range(test_env_size)]
         test_env = BanditsEnvironment(test_bandits)
         test_len = 1000
 
@@ -37,8 +38,8 @@ class TestMultiarmBandits(unittest.TestCase):
         test_rewards = [test_env.take_action(selected_bandit) for _ in range(test_len)]
 
         plt.plot(test_rewards, label='rewards')
-        plt.plot((selected_bandit**2 + selected_bandit) * np.ones(test_len), linestyle='--', color='r')
-        plt.plot((selected_bandit**2 - selected_bandit) * np.ones(test_len), linestyle='--', color='r')
+        plt.plot((selected_bandit ** 2 + selected_bandit) * np.ones(test_len), linestyle='--', color='r')
+        plt.plot((selected_bandit ** 2 - selected_bandit) * np.ones(test_len), linestyle='--', color='r')
 
         plt.show()
 
@@ -58,7 +59,7 @@ class TestMultiarmBandits(unittest.TestCase):
         plt.plot([GreedyPolicy.action(q=test_q) for _ in range(test_len)])
         plt.subplot(3, 1, 2)
         plt.plot([RandomPolicy.action(q=test_q) for _ in range(test_len)])
-        plt.subplot(3, 1, 3) 
+        plt.subplot(3, 1, 3)
         plt.plot([EpsGreedyPolicy.action(q=test_q, eps=0.1) for _ in range(test_len)])
 
         plt.show()
@@ -77,9 +78,9 @@ class TestMultiarmBandits(unittest.TestCase):
         # Prikazujemo i grafik konvergencije, koji pokazuje suštinu epsilon greedy politike.
 
         print('*** 1. zadatak ***')
-        
+
         test_eps = [0.7, 0.4, 0.1, 0.01]
-        
+
         for eps in test_eps:
             q, q_evol, old_bandit_mean = sys.run_system(eps=eps, ATTEMPTS_NO=ATTEMPTS_NO)
             plotter = ConvergencePlot(q_evol=q_evol, eps=0.1, ATTEMPTS_NO=ATTEMPTS_NO)
@@ -91,10 +92,10 @@ class TestMultiarmBandits(unittest.TestCase):
         print('*** 2. zadatak ***')
 
         test_eps = [0.1, 0.0]
-        
+
         for eps in test_eps:
             q, q_evol, old_bandit_mean = sys.run_system(eps=eps, ATTEMPTS_NO=ATTEMPTS_NO)
-            
+
         # *** 3. zadatak ***
         # Šta ako su karakteristike bandita promjenljive u vremenu?
         # Definišimo zakon promjene srednjih vrijednosti (može biti stohastičke ili determinističke prirode).

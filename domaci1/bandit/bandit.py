@@ -1,10 +1,10 @@
 import random
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-
+from abc import ABC, abstractmethod
 from typing import Iterable, Callable, List, Dict, Tuple
-from abc import ABC, abstractmethod, abstractstaticmethod
+
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
 
 sns.set()
 
