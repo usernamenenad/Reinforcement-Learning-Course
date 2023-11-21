@@ -238,6 +238,7 @@ class MazeEnvironment:
                        if self.board[i, j].is_steppable() and not isinstance(self.board[i, j], TeleportCell)]
         self.q_values = {(s, a): -10 * random() if not self.is_terminal(s) else 0
                          for s in self.states for a in self.get_actions()}
+        self.v_values = {s: self.determine_v(s) for s in self.states}
         self.gamma = gamma
 
     def __call__(self, state: tuple[int, int], action: Action):
@@ -314,30 +315,23 @@ class MazeEnvironment:
 
         return max(q)
 
-    def update_q_values(self):
+    def update_values(self):
         for s in self.states:
             if not self.is_terminal(s):
                 for a in self.get_actions():
                     s_new, r, _ = self(s, a)
                     self.q_values[(s, a)] = r + self.gamma * self.determine_v(s_new)
+                self.v_values[s] = self.determine_v(s)
 
-    def compute_q_values(self, eps: float = 0.01, max_iter: int = 1000):
+    def compute_values(self, eps: float = 0.01, max_iter: int = 1000):
         for k in range(max_iter):
             ov = deepcopy(self.q_values)
-            self.update_q_values()
+            self.update_values()
             err = max([abs(self.q_values[(s, a)] - ov[(s, a)]) for s, a in self.q_values])
             if err < eps:
                 return k
 
         return max_iter
-
-    def greedy_policy(self, s):
-        v = []
-        for a in self.get_actions():
-            s_new, r, _ = self(s, a)
-            v.append((self.determine_v(s_new), s, a))
-
-        return max(v, key=lambda x: x[0])
 
     def get_actions(self):
         """

@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from environment import *
+from agent import *
 
 
 class Draw:
@@ -24,19 +24,19 @@ class Draw:
         ax.imshow(board_img)
 
     @staticmethod
-    def draw_values(env: MazeEnvironment, ax=None):
+    def draw_values(agent: Agent, ax=None):
         ax = ax if ax else plt
-        Draw.draw_board(env.board, ax=ax)
-        for s, a in env.q_values:
-            ax.text(s[1] - 0.4, s[0] + 0.1, f'{env.determine_v(s):.1f}')
+        Draw.draw_board(agent.env.board, ax=ax)
+        for s in agent.env.v_values:
+            ax.text(s[1] - 0.4, s[0] + 0.1, f'{agent.env.v_values[s]:.1f}')
 
     @staticmethod
-    def draw_policy(env: MazeEnvironment, ax=None):
+    def draw_policy(agent: Agent, policy: str, ax=None):
         ax = ax if ax else plt
-        Draw.draw_board(env.board, ax=ax)
-        for s in env.states:
-            if not env.is_terminal(s):
-                value, _, a = env.greedy_policy(s)
+        Draw.draw_board(agent.env.board, ax=ax)
+        for s in agent.env.states:
+            if not agent.env.is_terminal(s):
+                a = agent.take_policy_using_v(s) if policy == 'v' else agent.take_policy_using_q(s)
                 if a == Action.RIGHT:
                     ax.text(s[1] - 0.25, s[0] + 0.1, '→')
                 elif a == Action.LEFT:

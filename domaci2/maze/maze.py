@@ -1,5 +1,5 @@
-from agent import *
 from draw import *
+
 
 if __name__ == '__main__':
     DEFAULT_SPECS = [
@@ -10,22 +10,26 @@ if __name__ == '__main__':
         (0.5, lambda: TeleportCell())
     ]
 
-    fig, axes = plt.subplots(nrows=3, ncols=1, figsize=(15, 15))
+    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(15, 15))
     axes = axes.flatten()
 
     board = MazeBoard(size=(8, 8), specs=DEFAULT_SPECS)
     env = MazeEnvironment(board)
     agent = Agent(env, (0, 0), Action.get_all_actions())
+    agent.set_policy(GreedyPolicy())
 
-    Draw.draw_values(env, ax=axes[0])
+    Draw.draw_values(agent, ax=axes[0])
     axes[0].set_title('Initial Q values.')
 
-    k = env.compute_q_values()
+    k = env.compute_values()
 
-    Draw.draw_values(env, ax=axes[1])
+    Draw.draw_values(agent, ax=axes[1])
     axes[1].set_title(f'V values computed using Q values after {k} iterations.')
 
-    Draw.draw_policy(env, ax=axes[2])
-    axes[2].set_title('Optimal policy')
+    Draw.draw_policy(agent, 'v', ax=axes[2])
+    axes[2].set_title('Optimal policy using V values')
+
+    Draw.draw_policy(agent, 'q', ax=axes[3])
+    axes[3].set_title('Optimal policy using Q values')
 
     plt.show()
