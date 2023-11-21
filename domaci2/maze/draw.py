@@ -6,17 +6,17 @@ from agent import *
 
 class Draw:
     @staticmethod
-    def draw_board(board: MazeBoard, pos: tuple[int, int] = None, ax=None) -> None:
+    def draw_board(board: MazeBoard, pos: tuple[int, int] = None, ax=None):
         ax = ax if ax else plt
         board_img = np.ones(shape=(board.rows_no, board.cols_no, 3), dtype=np.uint8)
 
         for i in range(board.rows_no):
             for j in range(board.cols_no):
-                board_img[i, j, :] = board[i, j].get_color()
+                board_img[i, j, :] = board[i, j].color
                 if isinstance(board[i, j], TeleportCell):
                     ax.text(j - 0.4, i + 0.1,
-                            f'({board[i, j].to_teleport_to.get_position()[0]},'
-                            f'{board[i, j].to_teleport_to.get_position()[1]})')
+                            f'({board[i, j].to_teleport_to.position[0]},'
+                            f'{board[i, j].to_teleport_to.position[1]})')
         if pos:
             row, col = pos
             ax.text(col - 0.4, row + 0.1, 'X', fontweight='bold')

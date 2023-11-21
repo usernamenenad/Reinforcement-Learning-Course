@@ -1,4 +1,5 @@
 from draw import *
+from agent import *
 
 
 if __name__ == '__main__':
@@ -15,8 +16,9 @@ if __name__ == '__main__':
 
     board = MazeBoard(size=(8, 8), specs=DEFAULT_SPECS)
     env = MazeEnvironment(board)
-    agent = Agent(env, (0, 0), Action.get_all_actions())
+    agent = Agent(env, Action.get_all_actions(), state=(0, 0))
     agent.set_policy(GreedyPolicy())
+    # print(agent.get_policy())
 
     Draw.draw_values(agent, ax=axes[0])
     axes[0].set_title('Initial Q values.')
