@@ -4,5 +4,6 @@
 .ipynb_checkpoints
 .venv
 .idea
+.vscode
 __pycache__
 Tekstovi
