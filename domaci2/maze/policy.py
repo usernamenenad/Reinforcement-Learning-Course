@@ -1,8 +1,8 @@
 from abc import ABC
 from typing import Dict
 
-from actions import *
-from environment import MazeEnvironment
+from .actions import *
+from .environment import MazeEnvironment
 
 
 class Policy(ABC):
@@ -32,7 +32,7 @@ class GreedyPolicy(Policy):
     def q_policy(
             self, s: tuple[int, int], env: MazeEnvironment, actions: list[Action]
     ) -> Action:
-        qpa = []
+        qpa: list[tuple[float, Action]] = []
         for a in actions:
             qpa.append((env.q_values[(s, a)], a))
 
@@ -41,14 +41,11 @@ class GreedyPolicy(Policy):
     def v_policy(
             self, s: tuple[int, int], env: MazeEnvironment, actions: list[Action]
     ) -> Action:
-        vpa = []
+        vpa: list[tuple[float, Action]] = []
         for a in actions:
             news = env(s, a)
-            v_sum = 0
-            for new in news:
-                prob = env.probabilities[(s, a)][new['Direction']]
-                v_sum += prob * (new['Reward'] + env.gamma *
-                                 env.v_values[new['New state']])
+            v_sum = sum([new['Probability'] * (new['Reward'] + env.gamma *
+                        env.v_values[new['New state']]) for new in news])
             vpa.append((v_sum, a))
 
         return max(vpa, key=lambda x: x[0])[1]

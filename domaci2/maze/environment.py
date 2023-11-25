@@ -1,17 +1,17 @@
+import numpy as np
+
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from random import choices, randint
 from random import random
 from typing import Iterable, Callable, Dict
 
-import numpy as np
-
-from actions import *
+from .actions import *
 
 
 class Cell(ABC):
     """
-    Abstract base class for all maze cells.
+    Interface class for all maze cells.
     """
 
     @property
@@ -304,7 +304,7 @@ class MazeBoard:
         A method for determining cells' position.
         Besides determining positions, it will assign
         one random cell to teleport cell that is not
-        another teleport nor wall cell.
+        another teleport itself nor wall.
         """
         for row in range(self.rows_no):
             for col in range(self.cols_no):
@@ -326,7 +326,7 @@ class MazeEnvironment:
     """
     Wrapper for a maze board that behaves like an MDP environment.
 
-    This is a callable object that behaves like a deterministic MDP
+    This is a callable object that behaves like a stochastic MDP
     state transition function - given the current state and action,
     it returns the following state and reward.
 
@@ -408,39 +408,40 @@ class MazeEnvironment:
 
         for s in self.states:
             for a in self.get_actions():
-                no_probs = len(self.get_actions())
+                no_probs = len(self.get_directions())
                 probabilities = np.round(
                     np.random.dirichlet(np.ones(no_probs), size=1)[0], 3
                 ).tolist()
-                i = 0
                 self.__probabilities[(s, a)] = {}
-                for dir in self.get_directions():
-                    self.__probabilities[(s, a)][dir] = probabilities[i]
-                    i += 1
+                for i, direction in enumerate(self.get_directions()):
+                    self.__probabilities[(s, a)][direction] = probabilities[i]
 
         self.__q_values = {
             (s, a): -10 * random() if not self.is_terminal(s) else 0
             for s in self.states
             for a in self.get_actions()
         }
-        self.__v_values = {s: self.determine_v(s) for s in self.states}
+
+        self.__v_values = {s: self.determine_v(s)
+                           for s in self.states}
 
         self.__gamma = gamma
 
     def __call__(self, state: tuple[int, int], action: Action):
         row, col = state
         ss_next = []
-        for dir in self.get_directions():
-            new_row, new_col = self.compute_direction(row, col, dir)
+        for direction in self.get_directions():
+            new_row, new_col = self.compute_direction(row, col, direction)
             new_cell = self.board[new_row, new_col]
             if isinstance(new_cell, TeleportCell):
                 new_row = new_cell.to_teleport_to.position[0]
                 new_col = new_cell.to_teleport_to.position[1]
                 new_cell = new_cell.to_teleport_to
             ss_next.append({
-                'Direction': dir,
+                'Direction': direction,
                 'New state': (new_row, new_col),
                 'Reward': new_cell.reward,
+                'Probability': self.probabilities[(state, action)][direction],
                 'Is terminal': new_cell.is_terminal
             })
 
@@ -451,16 +452,17 @@ class MazeEnvironment:
         A utility function that validates a position.
         """
         if row < 0 or row >= self.board.rows_no:
-            raise Exception()
+            raise Exception("Invalid row position")
         if col < 0 or col >= self.board.cols_no:
-            raise Exception()
+            raise Exception("Invalid column position")
         if not self.board[row, col].is_steppable:
-            raise Exception()
+            raise Exception("Invalid position: unsteppable cell")
 
     def compute_direction(self, row: int, col: int, dir: Direction) -> tuple[int, int]:
         """
-        Compute action for a certain environment. Firstly, we define inner functions for movement in all
-        4 directions. After, we define the move function itself.
+        Compute a concrete direction for a certain environment. 
+        Firstly, we define inner functions for movement in all
+        4 directions. After, we define the `compute_direction` function itself.
         """
 
         if dir not in self.get_directions():
@@ -505,25 +507,19 @@ class MazeEnvironment:
     def determine_v(self, s: tuple[int, int]):
         q = []
         for a in self.get_actions():
-            q_sum = sum([self.probabilities[(s, a)][dir] * self.q_values[(s, a)]
-                        for dir in self.get_directions()])
-            q.append(q_sum)
+            q.append(sum([self.probabilities[(s, a)][direction] * self.q_values[(s, a)]
+                          for direction in self.get_directions()]))
+        # v = max_a(q)
         return max(q)
 
     def update_values(self):
         for s in self.states:
             if not self.is_terminal(s):
                 for a in self.get_actions():
-                    q_new = 0
                     news = self(s, a)
-                    for new in news:
-                        dir = new['Direction']
-                        s_new = new['New state']
-                        reward = new['Reward']
-
-                        q_new += self.probabilities[(s, a)][dir] * (
-                            reward + self.gamma * self.determine_v(s_new))
-                    self.q_values[(s, a)] = q_new
+                    # q(s, a) = sum(p(s^+, r | s, a)(r + gamma * q(s^+, a^+)))
+                    self.q_values[(s, a)] = sum([new['Probability'] * (new['Reward'] + self.gamma *
+                                                                       self.determine_v(new['New state'])) for new in news])
                 self.v_values[s] = self.determine_v(s)
 
     def compute_values(self, eps: float = 0.01, max_iter: int = 1000):

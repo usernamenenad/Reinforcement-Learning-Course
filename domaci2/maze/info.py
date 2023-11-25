@@ -1,10 +1,11 @@
 import matplotlib.pyplot as plt
+
 from tabulate import tabulate
 
-from agent import *
+from .agent import *
 
 
-class Draw:
+class Info:
     @staticmethod
     def draw_board(board: MazeBoard, pos: tuple[int, int] = None, ax=None):
         ax = ax if ax else plt
@@ -30,14 +31,14 @@ class Draw:
     @staticmethod
     def draw_values(agent: Agent, ax=None):
         ax = ax if ax else plt
-        Draw.draw_board(agent.env.board, ax=ax)
+        Info.draw_board(agent.env.board, ax=ax)
         for s in agent.env.states:
-            ax.text(s[1] - 0.4, s[0] + 0.1, f"{agent.env.determine_v(s):.1f}")
+            ax.text(s[1] - 0.4, s[0] + 0.1, f"{agent.env.v_values[s]:.1f}")
 
     @staticmethod
     def draw_policy(agent: Agent, policy: str, ax=None):
         ax = ax if ax else plt
-        Draw.draw_board(agent.env.board, ax=ax)
+        Info.draw_board(agent.env.board, ax=ax)
         for s in agent.env.states:
             if not agent.env.is_terminal(s):
                 # if a == Action.ACTION_R:

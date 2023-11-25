@@ -1,5 +1,5 @@
-from environment import *
-from policy import *
+from .environment import *
+from .policy import *
 
 
 class Agent:
@@ -48,12 +48,6 @@ class Agent:
         self.__state: tuple[int, int] = state if state else (0, 0)
         self.__actions: list[Action] = actions
         self.__policy: Policy = None
-
-    def get_actions(self) -> list[Action]:
-        return self.get_actions()
-
-    def set_policy(self, policy: Policy):
-        self.policy = policy
 
     def take_action(
             self, a: Action, s: tuple[int, int] = None
