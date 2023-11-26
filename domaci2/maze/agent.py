@@ -33,25 +33,14 @@ class Agent:
     def actions(self, actions: list[Action]):
         self.__actions = actions
 
-    @property
-    def policy(self) -> Policy:
-        return self.__policy
-
-    @policy.setter
-    def policy(self, policy: Policy):
-        self.__policy = policy
-
     def __init__(
-            self, env: MazeEnvironment, actions: list[Action], state: tuple[int, int] = None
+        self, env: MazeEnvironment, actions: list[Action], state: tuple[int, int] = None
     ):
         self.__env: MazeEnvironment = env
         self.__state: tuple[int, int] = state if state else (0, 0)
         self.__actions: list[Action] = actions
-        self.__policy: Policy = None
 
-    def take_action(
-            self, a: Action, s: tuple[int, int] = None
-    ):
+    def take_action(self, a: Action, s: tuple[int, int] = None):
         if a not in self.actions:
             raise Exception(f"Agent itself cannot take action {a.name}")
 
@@ -60,14 +49,15 @@ class Agent:
 
         return self.env(s, a)
 
-    def take_policy(self, s: tuple[int, int], name) -> Action:
-        if name == "greedy_q":
-            return self.policy.q_policy(s, self.env, self.actions)
-        elif name == "greedy_v":
-            return self.policy.v_policy(s, self.env, self.actions)
-        else:
-            raise Exception("Policy unidentifiable.")
+    def determine_optimal_actions(
+        self, policy: Policy
+    ) -> Dict[tuple[int, int], Action]:
+        sa: Dict[tuple[int, int], Action] = {}
+        for s in self.env.states:
+            if not self.env.is_terminal(s):
+                sa[s] = policy.take_policy(s, self.env, self.actions)
 
+        return sa
 
-if __name__ == "__main__":
-    print("Hi! Here you can find implementation of Agent class, the one who learns.")
+    def take_policy(self, s: tuple[int, int], policy: Policy) -> Action:
+        return policy.take_policy(s, self.env, self.actions)

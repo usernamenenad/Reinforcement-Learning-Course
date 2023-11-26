@@ -1,7 +1,7 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from typing import Dict
 
-from .actions import *
+from .utils import *
 from .environment import MazeEnvironment
 
 
@@ -13,24 +13,25 @@ class Policy(ABC):
     defined_policies: Dict[str, set[str]] = {}
 
 
-class GreedyPolicy(Policy):
+class GreedyPolicy(Policy, ABC):
     """
     A class grouping all greedy policies (and their subtypes).
     """
 
-    def __init__(self):
-        """
-        If we define another greedy policy, it should be
-        added into static member `defined_policies` of `Policy` class
-        to update list of all possible policies for agent to take.
-        """
-        if self.__class__.__name__ not in Policy.defined_policies:
-            Policy.defined_policies[self.__class__.__name__] = set()
-        Policy.defined_policies[self.__class__.__name__].add("greedy_q")
-        Policy.defined_policies[self.__class__.__name__].add("greedy_v")
+    @abstractmethod
+    def take_policy(
+        self, s: tuple[int, int], env: MazeEnvironment, actions: list[Action]
+    ) -> Action:
+        pass
 
-    def q_policy(
-            self, s: tuple[int, int], env: MazeEnvironment, actions: list[Action]
+
+class GreedyPolicyQ(GreedyPolicy):
+    """
+    Greedy Q policy
+    """
+
+    def take_policy(
+        self, s: tuple[int, int], env: MazeEnvironment, actions: list[Action]
     ) -> Action:
         qpa: list[tuple[float, Action]] = []
         for a in actions:
@@ -38,20 +39,25 @@ class GreedyPolicy(Policy):
 
         return max(qpa, key=lambda x: x[0])[1]
 
-    def v_policy(
-            self, s: tuple[int, int], env: MazeEnvironment, actions: list[Action]
+
+class GreedyPolicyV(GreedyPolicy):
+    """
+    Greedy V policy
+    """
+
+    def take_policy(
+        self, s: tuple[int, int], env: MazeEnvironment, actions: list[Action]
     ) -> Action:
         vpa: list[tuple[float, Action]] = []
         for a in actions:
             news = env(s, a)
-            v_sum = sum([new['Probability'] * (new['Reward'] + env.gamma *
-                        env.v_values[new['New state']]) for new in news])
+            v_sum = sum(
+                [
+                    new["Probability"]
+                    * (new["Reward"] + env.gamma * env.v_values[new["New state"]])
+                    for new in news
+                ]
+            )
             vpa.append((v_sum, a))
 
         return max(vpa, key=lambda x: x[0])[1]
-
-
-if __name__ == "__main__":
-    print(
-        "Hi! Here you can find implementation of Policy class, used for implementing policies."
-    )

@@ -21,9 +21,3 @@ class Action(Enum):
     @staticmethod
     def get_all_actions():
         return [Action.ACTION_R, Action.ACTION_L, Action.ACTION_D, Action.ACTION_U]
-
-
-if __name__ == "__main__":
-    print(
-        "Hi! Here you can find implementation of Action class, used for agent movement."
-    )

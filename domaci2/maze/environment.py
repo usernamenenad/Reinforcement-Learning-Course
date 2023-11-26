@@ -6,7 +6,7 @@ from random import choices, randint
 from random import random
 from typing import Iterable, Callable, Dict
 
-from .actions import *
+from .utils import *
 
 
 class Cell(ABC):
@@ -16,11 +16,11 @@ class Cell(ABC):
 
     @property
     @abstractmethod
-    def position(self) -> tuple[int, int]:
+    def state(self) -> tuple[int, int]:
         pass
 
-    @position.setter
-    def position(self, position: tuple[int, int]):
+    @state.setter
+    def state(self, state: tuple[int, int]):
         pass
 
     @property
@@ -58,12 +58,12 @@ class RegularCell(Cell):
     """
 
     @property
-    def position(self) -> tuple[int, int]:
-        return self.__position
+    def state(self) -> tuple[int, int]:
+        return self.__state
 
-    @position.setter
-    def position(self, position: tuple[int, int]):
-        self.__position = position
+    @state.setter
+    def state(self, state: tuple[int, int]):
+        self.__state = state[0], state[1]
 
     @property
     def reward(self) -> float:
@@ -79,7 +79,7 @@ class RegularCell(Cell):
 
     def __init__(self, reward: float):
         self.__reward: float = reward
-        self.__position: tuple[int, int] = None
+        self.__state: tuple[int, int] = -1, -1
 
 
 class TerminalCell(Cell):
@@ -91,12 +91,12 @@ class TerminalCell(Cell):
     """
 
     @property
-    def position(self) -> tuple[int, int]:
-        return self.__position
+    def state(self) -> tuple[int, int]:
+        return self.__state
 
-    @position.setter
-    def position(self, position: tuple[int, int]):
-        self.__position = position
+    @state.setter
+    def state(self, state: tuple[int, int]):
+        self.__state = state[0], state[1]
 
     @property
     def reward(self) -> float:
@@ -116,7 +116,7 @@ class TerminalCell(Cell):
 
     def __init__(self, reward: float):
         self.__reward: float = reward
-        self.__position: tuple[int, int] = None
+        self.__state: tuple[int, int] = -1, -1
 
 
 class TeleportCell(Cell):
@@ -129,12 +129,12 @@ class TeleportCell(Cell):
     """
 
     @property
-    def position(self) -> tuple[int, int]:
-        return self.__position
+    def state(self) -> tuple[int, int]:
+        return self.__state
 
-    @position.setter
-    def position(self, position: tuple[int, int]):
-        self.__position = position
+    @state.setter
+    def state(self, state: tuple[int, int]):
+        self.__state = state[0], state[1]
 
     @property
     def reward(self) -> float:
@@ -171,7 +171,7 @@ class TeleportCell(Cell):
     def __init__(self):
         self.__to_teleport_to: Cell = None
         self.__reward: float = None
-        self.__position: tuple[int, int] = None
+        self.__state: tuple[int, int] = -1, -1
 
 
 class WallCell(Cell):
@@ -182,12 +182,12 @@ class WallCell(Cell):
     """
 
     @property
-    def position(self) -> tuple[int, int]:
-        return self.position
+    def state(self) -> tuple[int, int]:
+        return self.__state
 
-    @position.setter
-    def position(self, position: tuple[int, int]):
-        self.__position = position
+    @state.setter
+    def state(self, state: tuple[int, int]):
+        self.__state = state[0], state[1]
 
     @property
     def reward(self) -> float:
@@ -211,7 +211,7 @@ class WallCell(Cell):
 
     def __init__(self):
         self.__reward: float = 0
-        self.__position: tuple[int, int] = None
+        self.__state: tuple[int, int] = -1, -1
 
 
 CellGenerator = Callable[[], Cell]
@@ -262,18 +262,17 @@ class MazeBoard:
 
         cells = [[random_cell() for _ in range(width)] for _ in range(height)]
 
-        self.__rows_no, self.__cols_no, self.__cells = MazeBoard.validate_cells(
-            cells)
+        self.__rows_no, self.__cols_no, self.__cells = MazeBoard.__validate_cells(cells)
 
-        self.set_cells_position()
+        self.__set_cells_position()
 
     def __getitem__(self, key: tuple[int, int]):
         row, col = key
         return self.cells[row][col]
 
     @staticmethod
-    def validate_cells(
-            cells: Iterable[Iterable[Cell]],
+    def __validate_cells(
+        cells: Iterable[Iterable[Cell]],
     ) -> tuple[int, int, list[list[Cell]]]:
         """
         Utility function used to validate the given double-iterable of cells.
@@ -299,7 +298,7 @@ class MazeBoard:
 
         return rows_no, cols_no, cells
 
-    def set_cells_position(self):
+    def __set_cells_position(self):
         """
         A method for determining cells' position.
         Besides determining positions, it will assign
@@ -309,14 +308,14 @@ class MazeBoard:
         for row in range(self.rows_no):
             for col in range(self.cols_no):
                 cell = self[row, col]
-                cell.position = row, col
+                cell.state = (row, col)
                 if isinstance(cell, TeleportCell):
                     while True:
                         i, j = randint(0, self.rows_no - 1), randint(
                             0, self.cols_no - 1
                         )
                         if not isinstance(self[i, j], TeleportCell) and not isinstance(
-                                self[i, j], WallCell
+                            self[i, j], WallCell
                         ):
                             cell.to_teleport_to = self[i, j]
                             break
@@ -349,7 +348,10 @@ class MazeEnvironment:
 
     @states.setter
     def states(self, states: list[tuple[int, int]]):
-        self.__states = states
+        if self.__states:
+            self.__states.clear()
+        for state in states:
+            self.states.append((state[0], state[1]))
 
     @property
     def q_values(self) -> Dict[tuple[tuple[int, int], Action], float]:
@@ -357,7 +359,10 @@ class MazeEnvironment:
 
     @q_values.setter
     def q_values(self, q_values: Dict[tuple[tuple[int, int], Action], float]):
-        self.__q_values = q_values
+        if self.__q_values:
+            self.__q_values.clear()
+        for state, action in q_values:
+            self.__q_values[((state[0], state[1]), action)] = q_values[(state, action)]
 
     @property
     def v_values(self) -> Dict[tuple[int, int], float]:
@@ -365,20 +370,28 @@ class MazeEnvironment:
 
     @v_values.setter
     def v_values(self, v_values: Dict[tuple[int, int], float]):
-        self.__v_values = v_values
+        if self.__v_values:
+            self.__v_values.clear()
+        for state in v_values:
+            self.v_values[(state[0], state[1])] = v_values[state]
 
     @property
     def probabilities(
-            self,
+        self,
     ) -> Dict[tuple[tuple[int, int], Action], Dict[Direction, float]]:
         return self.__probabilities
 
     @probabilities.setter
     def probabilities(
-            self,
-            probabilities: Dict[tuple[tuple[int, int], Action], Dict[Direction, float]],
+        self,
+        probabilities: Dict[tuple[tuple[int, int], Action], Dict[Direction, float]],
     ):
-        self.__probabilities = probabilities
+        if self.__probabilities:
+            self.__probabilities.clear()
+        for state, action in probabilities:
+            self.__probabilities[((state[0], state[1]), action)] = probabilities[
+                (state, action)
+            ]
 
     @property
     def gamma(self) -> float:
@@ -422,8 +435,7 @@ class MazeEnvironment:
             for a in self.get_actions()
         }
 
-        self.__v_values = {s: self.determine_v(s)
-                           for s in self.states}
+        self.__v_values = {s: self.determine_v(s) for s in self.states}
 
         self.__gamma = gamma
 
@@ -433,17 +445,21 @@ class MazeEnvironment:
         for direction in self.get_directions():
             new_row, new_col = self.compute_direction(row, col, direction)
             new_cell = self.board[new_row, new_col]
+
             if isinstance(new_cell, TeleportCell):
-                new_row = new_cell.to_teleport_to.position[0]
-                new_col = new_cell.to_teleport_to.position[1]
+                new_row = new_cell.to_teleport_to.state[0]
+                new_col = new_cell.to_teleport_to.state[1]
                 new_cell = new_cell.to_teleport_to
-            ss_next.append({
-                'Direction': direction,
-                'New state': (new_row, new_col),
-                'Reward': new_cell.reward,
-                'Probability': self.probabilities[(state, action)][direction],
-                'Is terminal': new_cell.is_terminal
-            })
+
+            ss_next.append(
+                {
+                    "Direction": direction,
+                    "New state": (new_row, new_col),
+                    "Reward": new_cell.reward,
+                    "Probability": self.probabilities[(state, action)][direction],
+                    "Is terminal": new_cell.is_terminal,
+                }
+            )
 
         return ss_next
 
@@ -460,15 +476,14 @@ class MazeEnvironment:
 
     def compute_direction(self, row: int, col: int, dir: Direction) -> tuple[int, int]:
         """
-        Compute a concrete direction for a certain environment. 
+        Compute a concrete direction for a certain environment.
         Firstly, we define inner functions for movement in all
         4 directions. After, we define the `compute_direction` function itself.
         """
 
         if dir not in self.get_directions():
             raise Exception(
-                f"Agent cannot move in direction {
-                    dir.name} in this environment."
+                f"Agent cannot move in direction {dir.name} in this environment."
             )
 
         def right(board: MazeBoard, row: int, col: int) -> tuple[int, int]:
@@ -507,27 +522,42 @@ class MazeEnvironment:
     def determine_v(self, s: tuple[int, int]):
         q = []
         for a in self.get_actions():
-            q.append(sum([self.probabilities[(s, a)][direction] * self.q_values[(s, a)]
-                          for direction in self.get_directions()]))
+            q.append(
+                sum(
+                    [
+                        self.probabilities[(s, a)][direction] * self.q_values[(s, a)]
+                        for direction in self.get_directions()
+                    ]
+                )
+            )
         # v = max_a(q)
         return max(q)
 
-    def update_values(self):
+    def __update_values(self):
         for s in self.states:
             if not self.is_terminal(s):
                 for a in self.get_actions():
                     news = self(s, a)
                     # q(s, a) = sum(p(s^+, r | s, a)(r + gamma * q(s^+, a^+)))
-                    self.q_values[(s, a)] = sum([new['Probability'] * (new['Reward'] + self.gamma *
-                                                                       self.determine_v(new['New state'])) for new in news])
+                    self.q_values[(s, a)] = sum(
+                        [
+                            new["Probability"]
+                            * (
+                                new["Reward"]
+                                + self.gamma * self.determine_v(new["New state"])
+                            )
+                            for new in news
+                        ]
+                    )
                 self.v_values[s] = self.determine_v(s)
 
     def compute_values(self, eps: float = 0.01, max_iter: int = 1000):
         for k in range(max_iter):
             ov = deepcopy(self.q_values)
-            self.update_values()
-            err = max([abs(self.q_values[(s, a)] - ov[(s, a)])
-                      for s, a in self.q_values])
+            self.__update_values()
+            err = max(
+                [abs(self.q_values[(s, a)] - ov[(s, a)]) for s, a in self.q_values]
+            )
             if err < eps:
                 return k
 
@@ -545,11 +575,3 @@ class MazeEnvironment:
 
     def is_terminal(self, state: tuple[int, int]):
         return self.board[state].is_terminal
-
-
-if __name__ == "__main__":
-    print(
-        "Hi! Here you can find implementation of #Cell, "
-        "MazeBoard and MazeEnvironment class, used for constructing "
-        "agent environment"
-    )

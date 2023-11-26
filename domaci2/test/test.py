@@ -9,7 +9,6 @@ class TestMaze(unittest.TestCase):
     """
 
     def test_maze(self) -> None:
-
         # We will make the default board specs and
         # the board itself
         DEFAULT_SPECS = [
@@ -26,12 +25,11 @@ class TestMaze(unittest.TestCase):
         env = MazeEnvironment(board=board, gamma=0.9)
 
         # Constructing the agent which lives in environment
-        agent = Agent(env=env, actions=env.get_actions())
-        agent.policy = GreedyPolicy()
+        agent = Agent(env, actions=env.get_actions())
 
         Info.print_probabilities(agent)
 
-        fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(20, 20))
+        _, axes = plt.subplots(nrows=2, ncols=2, figsize=(18, 18))
         axes = axes.flatten()
 
         Info.draw_values(agent=agent, ax=axes[0])
@@ -40,21 +38,16 @@ class TestMaze(unittest.TestCase):
         k = env.compute_values()
 
         Info.draw_values(agent=agent, ax=axes[1])
-        axes[1].set_title(
-            f'V values computed using Q values after {k} iterations.')
+        axes[1].set_title(f"V values computed using Q values after {k} iterations.")
 
-        Info.draw_policy(agent, 'greedy_v', ax=axes[2])
-        axes[2].set_title('Optimal policy using V values')
+        Info.draw_policy(agent, "greedy_v", ax=axes[2])
+        axes[2].set_title("Optimal policy using V values")
 
-        Info.draw_policy(agent, 'greedy_q', ax=axes[3])
-        axes[3].set_title('Optimal policy using Q values')
+        Info.draw_policy(agent, "greedy_q", ax=axes[3])
+        axes[3].set_title("Optimal policy using Q values")
 
         plt.show()
 
 
 def main() -> None:
     unittest.main()
-
-
-if __name__ == "__main__":
-    print('Hi! I am testing maze!')
