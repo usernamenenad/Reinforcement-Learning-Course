@@ -80,7 +80,3 @@ class Info:
                 )
 
         print(tabulate(to_print, "keys", "rst"))
-
-
-if __name__ == "__main__":
-    print("Hi! Here you can find implementation of Draw class, used for plotting.")
