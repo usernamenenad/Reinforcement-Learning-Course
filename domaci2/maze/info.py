@@ -1,8 +1,11 @@
 import matplotlib.pyplot as plt
+import networkx as nx
 
+from colormap import rgb2hex
 from tabulate import tabulate
 
 from .agent import *
+from .environment import *
 
 
 class Info:
@@ -41,14 +44,14 @@ class Info:
         Info.draw_board(agent.env.board, ax=ax)
         sa = agent.determine_optimal_actions(policy)
         for s in sa:
-            if sa[s] == Action.ACTION_R:
-                ax.text(s[1] - 0.25, s[0] + 0.1, "R")
-            elif sa[s] == Action.ACTION_L:
-                ax.text(s[1] - 0.25, s[0] + 0.1, "L")
-            elif sa[s] == Action.ACTION_U:
-                ax.text(s[1] - 0.25, s[0] + 0.1, "U")
+            if sa[s] == Action.ACTION_A1:
+                ax.text(s[1] - 0.25, s[0] + 0.1, "A1")
+            elif sa[s] == Action.ACTION_A2:
+                ax.text(s[1] - 0.25, s[0] + 0.1, "A2")
+            elif sa[s] == Action.ACTION_A3:
+                ax.text(s[1] - 0.25, s[0] + 0.1, "A3")
             else:
-                ax.text(s[1] - 0.25, s[0] + 0.1, "D")
+                ax.text(s[1] - 0.25, s[0] + 0.1, "A4")
 
             # if a == Action.ACTION_R:
             #     ax.text(s[1] - 0.25, s[0] + 0.1, "→")
@@ -80,3 +83,29 @@ class Info:
                 )
 
         print(tabulate(to_print, "keys", "rst"))
+
+    @staticmethod
+    def draw_graph(graph: MazeGraph):
+        g = nx.DiGraph()
+        colors = {}
+
+        # Defining nodes and edges should be separable, idk why
+
+        # Defining nodes
+        for node in graph.nodes:
+            g.add_node(node)
+
+        # Defining edges
+        for node in graph.nodes:
+            if node in graph.connections:
+                dn = graph.connections[node]
+                for direction in dn:
+                    to_node = graph.connections[node][direction]
+                    g.add_edge(node, to_node)
+
+            color = graph.nodes[node].color
+            colors[node] = rgb2hex(color[0], color[1], color[2])
+
+        nx.draw_shell(g, node_color=[colors[color] for color in colors], with_labels=True, node_size=500,
+                      edgecolors='black')
+        print(colors)

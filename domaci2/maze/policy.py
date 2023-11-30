@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Dict
 
-from .utils import *
 from .environment import MazeEnvironment
+from .utils import *
 
 
 class Policy(ABC):
@@ -20,7 +20,7 @@ class GreedyPolicy(Policy, ABC):
 
     @abstractmethod
     def take_policy(
-        self, s: tuple[int, int], env: MazeEnvironment, actions: list[Action]
+            self, s: tuple[int, int], env: MazeEnvironment, actions: list[Action]
     ) -> Action:
         pass
 
@@ -31,7 +31,7 @@ class GreedyPolicyQ(GreedyPolicy):
     """
 
     def take_policy(
-        self, s: tuple[int, int], env: MazeEnvironment, actions: list[Action]
+            self, s: tuple[int, int], env: MazeEnvironment, actions: list[Action]
     ) -> Action:
         qpa: list[tuple[float, Action]] = []
         for a in actions:
@@ -46,7 +46,7 @@ class GreedyPolicyV(GreedyPolicy):
     """
 
     def take_policy(
-        self, s: tuple[int, int], env: MazeEnvironment, actions: list[Action]
+            self, s: tuple[int, int], env: MazeEnvironment, actions: list[Action]
     ) -> Action:
         vpa: list[tuple[float, Action]] = []
         for a in actions:

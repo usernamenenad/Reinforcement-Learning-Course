@@ -1,4 +1,3 @@
-from .environment import *
 from .policy import *
 
 

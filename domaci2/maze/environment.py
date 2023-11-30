@@ -1,324 +1,13 @@
-import numpy as np
-
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from random import choices, randint
 from random import random
 from typing import Iterable, Callable, Dict
 
+import numpy as np
+
 from .utils import *
-
-
-class Cell(ABC):
-    """
-    Interface class for all maze cells.
-    """
-
-    @property
-    @abstractmethod
-    def state(self) -> tuple[int, int]:
-        pass
-
-    @state.setter
-    def state(self, state: tuple[int, int]):
-        pass
-
-    @property
-    @abstractmethod
-    def reward(self) -> float:
-        pass
-
-    @reward.setter
-    def reward(self, reward: float):
-        pass
-
-    @property
-    @abstractmethod
-    def color(self) -> tuple[int, int, int]:
-        pass
-
-    @property
-    def is_steppable(self) -> bool:
-        return True
-
-    @property
-    def is_terminal(self) -> bool:
-        return False
-
-    @property
-    def has_value(self) -> bool:
-        return True
-
-
-class RegularCell(Cell):
-    """
-    A regular cell class.
-
-    A common, non-terminal, steppable cell.
-    """
-
-    @property
-    def state(self) -> tuple[int, int]:
-        return self.__state
-
-    @state.setter
-    def state(self, state: tuple[int, int]):
-        self.__state = state[0], state[1]
-
-    @property
-    def reward(self) -> float:
-        return self.__reward
-
-    @reward.setter
-    def reward(self, reward: float):
-        self.__reward = reward
-
-    @property
-    def color(self) -> tuple[int, int, int]:
-        return (255, 255, 255) if self.reward == -1 else (255, 0, 0)
-
-    def __init__(self, reward: float):
-        self.__reward: float = reward
-        self.__state: tuple[int, int] = -1, -1
-
-
-class TerminalCell(Cell):
-    """
-    A terminal cell class.
-
-    When an agent steps onto it,
-    game finishes.
-    """
-
-    @property
-    def state(self) -> tuple[int, int]:
-        return self.__state
-
-    @state.setter
-    def state(self, state: tuple[int, int]):
-        self.__state = state[0], state[1]
-
-    @property
-    def reward(self) -> float:
-        return self.__reward
-
-    @reward.setter
-    def reward(self, reward: float):
-        self.__reward = reward
-
-    @property
-    def color(self) -> tuple[int, int, int]:
-        return 0, 0, 255
-
-    @property
-    def is_terminal(self) -> bool:
-        return True
-
-    def __init__(self, reward: float):
-        self.__reward: float = reward
-        self.__state: tuple[int, int] = -1, -1
-
-
-class TeleportCell(Cell):
-    """
-    A teleport cell class.
-
-    When stepped onto it, agent can teleport only on
-    regular or terminal cells, but not on other
-    teleports nor wall cells.
-    """
-
-    @property
-    def state(self) -> tuple[int, int]:
-        return self.__state
-
-    @state.setter
-    def state(self, state: tuple[int, int]):
-        self.__state = state[0], state[1]
-
-    @property
-    def reward(self) -> float:
-        return self.__reward
-
-    @reward.setter
-    def reward(self, reward: float):
-        self.__reward = reward
-
-    @property
-    def color(self) -> tuple[int, int, int]:
-        return 0, 255, 0
-
-    @property
-    def to_teleport_to(self) -> Cell:
-        return self.__to_teleport_to
-
-    @to_teleport_to.setter
-    def to_teleport_to(self, to_teleport_to: Cell):
-        self.__to_teleport_to = to_teleport_to
-
-    @property
-    def is_steppable(self) -> bool:
-        return self.to_teleport_to.is_steppable
-
-    @property
-    def is_terminal(self) -> bool:
-        return self.to_teleport_to.is_terminal
-
-    @property
-    def has_value(self) -> bool:
-        return self.to_teleport_to.has_value
-
-    def __init__(self):
-        self.__to_teleport_to: Cell = None
-        self.__reward: float = None
-        self.__state: tuple[int, int] = -1, -1
-
-
-class WallCell(Cell):
-    """
-    A wall cell class.
-
-    A non steppable, wall cell.
-    """
-
-    @property
-    def state(self) -> tuple[int, int]:
-        return self.__state
-
-    @state.setter
-    def state(self, state: tuple[int, int]):
-        self.__state = state[0], state[1]
-
-    @property
-    def reward(self) -> float:
-        return self.__reward
-
-    @reward.setter
-    def reward(self, reward: float):
-        self.__reward = reward
-
-    @property
-    def color(self) -> tuple[int, int, int]:
-        return 0, 0, 0
-
-    @property
-    def is_steppable(self) -> bool:
-        return False
-
-    @property
-    def has_value(self) -> bool:
-        return False
-
-    def __init__(self):
-        self.__reward: float = 0
-        self.__state: tuple[int, int] = -1, -1
-
-
-CellGenerator = Callable[[], Cell]
-
-
-class MazeBoard:
-    """
-    A rectangular grid of cells representing a single maze.
-    """
-
-    @property
-    def rows_no(self) -> int:
-        return self.__rows_no
-
-    @rows_no.setter
-    def rows_no(self, rows_no: int):
-        self.__rows_no = rows_no
-
-    @property
-    def cols_no(self) -> int:
-        return self.__cols_no
-
-    @cols_no.setter
-    def cols_no(self, cols_no: int):
-        self.__cols_no = cols_no
-
-    @property
-    def cells(self) -> list[list[Cell]]:
-        return self.__cells
-
-    @cells.setter
-    def cells(self, cells: list[list[Cell]]):
-        self.__cells = cells
-
-    def __init__(self, size: tuple[int, int], specs: list[tuple[float, CellGenerator]]):
-        """
-        Initializer for the maze board from given `cells`. This method will
-        create a random board based on provided size and specs.
-        """
-
-        width, height = size
-
-        weights = [w for w, _ in specs]
-        generators = [g for _, g in specs]
-
-        def random_cell():
-            return choices(generators, weights, k=1)[0]()
-
-        cells = [[random_cell() for _ in range(width)] for _ in range(height)]
-
-        self.__rows_no, self.__cols_no, self.__cells = MazeBoard.__validate_cells(cells)
-
-        self.__set_cells_position()
-
-    def __getitem__(self, key: tuple[int, int]):
-        row, col = key
-        return self.cells[row][col]
-
-    @staticmethod
-    def __validate_cells(
-        cells: Iterable[Iterable[Cell]],
-    ) -> tuple[int, int, list[list[Cell]]]:
-        """
-        Utility function used to validate the given double-iterable of cells.
-
-        If checks are successful, it will return number of board rows and
-        columns, as well as cells themselves.
-        """
-        cells = [list(row) for row in cells] if cells else []
-
-        if not cells:
-            raise Exception("Number of rows in a board must be at least 1.")
-        if not cells[0]:
-            raise Exception("There has to be at least one column.")
-
-        rows_no = len(cells)
-        cols_no = len(cells[0])
-
-        for row in cells:
-            if not row or len(row) != cols_no:
-                raise Exception(
-                    "Each row in a board must have the same number of columns."
-                )
-
-        return rows_no, cols_no, cells
-
-    def __set_cells_position(self):
-        """
-        A method for determining cells' position.
-        Besides determining positions, it will assign
-        one random cell to teleport cell that is not
-        another teleport itself nor wall.
-        """
-        for row in range(self.rows_no):
-            for col in range(self.cols_no):
-                cell = self[row, col]
-                cell.state = (row, col)
-                if isinstance(cell, TeleportCell):
-                    while True:
-                        i, j = randint(0, self.rows_no - 1), randint(
-                            0, self.cols_no - 1
-                        )
-                        if not isinstance(self[i, j], TeleportCell) and not isinstance(
-                            self[i, j], WallCell
-                        ):
-                            cell.to_teleport_to = self[i, j]
-                            break
+from .base import *
 
 
 class MazeEnvironment:
@@ -377,14 +66,14 @@ class MazeEnvironment:
 
     @property
     def probabilities(
-        self,
+            self,
     ) -> Dict[tuple[tuple[int, int], Action], Dict[Direction, float]]:
         return self.__probabilities
 
     @probabilities.setter
     def probabilities(
-        self,
-        probabilities: Dict[tuple[tuple[int, int], Action], Dict[Direction, float]],
+            self,
+            probabilities: Dict[tuple[tuple[int, int], Action], Dict[Direction, float]],
     ):
         if self.__probabilities:
             self.__probabilities.clear()
@@ -411,9 +100,7 @@ class MazeEnvironment:
             (i, j)
             for i in range(self.board.rows_no)
             for j in range(self.board.cols_no)
-            if self.board[i, j].is_steppable
-            and not isinstance(self.board[i, j], TeleportCell)
-        ]
+            if self.board[i, j].is_steppable and not isinstance(self.board[i, j], TeleportCell)]
 
         self.__probabilities: Dict[
             tuple[tuple[int, int], Action], Dict[Direction, float]
@@ -474,50 +161,19 @@ class MazeEnvironment:
         if not self.board[row, col].is_steppable:
             raise Exception("Invalid position: unsteppable cell")
 
-    def compute_direction(self, row: int, col: int, dir: Direction) -> tuple[int, int]:
+    def compute_direction(self, row: int, col: int, direction: Direction) -> tuple[int, int]:
         """
         Compute a concrete direction for a certain environment.
         Firstly, we define inner functions for movement in all
         4 directions. After, we define the `compute_direction` function itself.
         """
 
-        if dir not in self.get_directions():
+        if direction not in self.get_directions():
             raise Exception(
-                f"Agent cannot move in direction {dir.name} in this environment."
+                f"Agent cannot move in direction {direction.name} in this environment."
             )
 
-        def right(board: MazeBoard, row: int, col: int) -> tuple[int, int]:
-            if col != board.cols_no - 1:
-                if board[row, col + 1].is_steppable:
-                    return row, col + 1
-            return row, col
-
-        def left(board: MazeBoard, row: int, col: int) -> tuple[int, int]:
-            if col != 0:
-                if board[row, col - 1].is_steppable:
-                    return row, col - 1
-            return row, col
-
-        def up(board: MazeBoard, row: int, col: int) -> tuple[int, int]:
-            if row != 0:
-                if board[row - 1, col].is_steppable:
-                    return row - 1, col
-            return row, col
-
-        def down(board: MazeBoard, row: int, col: int) -> tuple[int, int]:
-            if row != board.rows_no - 1:
-                if board[row + 1, col].is_steppable:
-                    return row + 1, col
-            return row, col
-
-        if dir == Direction.RIGHT:
-            return right(self.board, row, col)
-        elif dir == Direction.LEFT:
-            return left(self.board, row, col)
-        elif dir == Direction.UP:
-            return up(self.board, row, col)
-        else:
-            return down(self.board, row, col)
+        return self.board.connections[(row, col)][direction]
 
     def determine_v(self, s: tuple[int, int]):
         q = []
@@ -543,8 +199,8 @@ class MazeEnvironment:
                         [
                             new["Probability"]
                             * (
-                                new["Reward"]
-                                + self.gamma * self.determine_v(new["New state"])
+                                    new["Reward"]
+                                    + self.gamma * self.determine_v(new["New state"])
                             )
                             for new in news
                         ]
