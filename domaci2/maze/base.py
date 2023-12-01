@@ -1,5 +1,5 @@
 from typing import Dict, Iterable
-from random import randint, choice, choices, randrange
+from random import randint, choice, choices
 
 from .utils import *
 
@@ -16,18 +16,45 @@ class MazeBase(ABC):
         pass
 
     @abstractmethod
-    def __getitem__(self, **kwargs):
+    def __getitem__(self, **kwargs) -> Cell:
         pass
+
+    @abstractmethod
+    def get_directions(self, s: Position) -> list[Direction]:
+        pass
+
+
+class GraphPosition(Position):
+
+    @property
+    def value(self) -> int:
+        return self.__value
+
+    def __init__(self, value: int):
+        self.__value = value
+
+    def __eq__(self, other):
+        if isinstance(other, int):
+            return self.__value == other
+        elif isinstance(other, GraphPosition):
+            return self.__value == other.__value
+
+        raise Exception(
+            f"Cannot use '==' in context of {other.__class__.__name__}"
+        )
+
+    def __hash__(self):
+        return hash(self.__value)
 
 
 class MazeGraph(MazeBase):
 
     @property
-    def nodes(self):
+    def nodes(self) -> Dict[Position, Cell]:
         return self.__nodes
 
     @property
-    def connections(self):
+    def connections(self) -> Dict[Position, Dict[Direction, Position]]:
         return self.__connections
 
     def __init__(self, no_nodes: int, specs: list[tuple[float, CellGenerator]]):
@@ -39,30 +66,48 @@ class MazeGraph(MazeBase):
 
         self.__no_nodes = no_nodes
 
-        self.__nodes: Dict[int, Cell] = \
+        self.__nodes: Dict[Position, Cell] = \
             {
-                i: random_cell()
+                GraphPosition(i): random_cell()
                 for i in range(self.__no_nodes)
             }
 
-        self.__connections: Dict[int, Dict[Direction, int]] = \
+        self.__connections: Dict[Position, Dict[Direction, Position]] = \
             {
                 node: {}
                 for node in self.__nodes
-                if isinstance(self.__nodes[node], RegularCell)
             }
 
         self.__set_maze()
 
+    def __call__(self, position: int) -> Position:
+        for node in self.__nodes:
+            if node == position:
+                return node
+
+        raise Exception(
+            f"No position {position} in this base!"
+        )
+
+    def __getitem__(self, key: int | Position) -> Cell:
+        for node in self.__nodes:
+            if node == key:
+                return self.__nodes[node]
+
+        raise Exception(
+            f"No item {key} in this base!"
+        )
+
     def __set_teleport(self):
         for node in self.__nodes:
+            self.__nodes[node].position = node
             cell = self.__nodes[node]
             if isinstance(cell, TeleportCell):
                 while True:
-                    ti = randrange(self.__no_nodes)
-                    tn = self.__nodes[ti]
+                    tp = choice(list(self.__nodes.keys()))
+                    tn = self.__nodes[tp]
                     if not isinstance(tn, WallCell) and not isinstance(tn, TeleportCell):
-                        cell.state = (ti, 0)
+                        cell.position = tp
                         cell.to_teleport_to = tn
                         break
 
@@ -71,35 +116,73 @@ class MazeGraph(MazeBase):
         self.__set_teleport()
 
         for node in self.__connections:
-            directions = Direction.get_all_directions()
-            no_dir = randint(1, len(directions))
+            if isinstance(self[node], RegularCell):
+                directions = Direction.get_all_directions()
+                no_dir = randint(1, len(directions))
 
-            for _ in range(no_dir):
-                direction = choice(directions)
-                directions.remove(direction)
-                to_node = choice(list(self.__nodes.keys()))
-                self.__connections[node][direction] = to_node
+                for _ in range(no_dir):
+                    direction = choice(directions)
+                    directions.remove(direction)
+                    to_node = choice(list(self.__nodes.keys()))
+                    self.__connections[node][direction] = to_node
 
-    def __getitem__(self, key: int) -> Cell:
-        return self.__nodes[key]
+    def compute_direction(self, node: Position, direction: Direction) -> Position:
+        to_node = self.__connections[node][direction]
+        cell = self.__nodes[to_node]
+        if isinstance(cell, WallCell):
+            return node
+        return to_node
+
+    def get_directions(self, node: Position) -> list[Direction]:
+        return list(self.__connections[node].keys())
+
+
+class BoardPosition(Position):
+    @property
+    def value(self) -> tuple[int, int]:
+        return self.__value
+
+    def __init__(self, value: tuple[int, int]):
+        self.__value = value
+
+    def __eq__(self, other):
+        if isinstance(other, tuple):
+            return self.__value == other
+        elif isinstance(other, BoardPosition):
+            return self.__value == other.__value
+
+        raise Exception(
+            f"Cannot use '==' in context of {other.__class__.__name__}"
+        )
+
+    def __hash__(self):
+        return hash(self.__value)
+
+    def __getitem__(self, key: int):
+        if key == 0 or key == 1:
+            return self.__value[key]
+
+        raise Exception(
+            f"No position {key} in this base!"
+        )
 
 
 class MazeBoard(MazeBase):
 
     @property
-    def nodes(self):
+    def nodes(self) -> Dict[Position, Cell]:
         return self.__nodes
 
     @property
-    def connections(self):
+    def connections(self) -> Dict[Position, Dict[Direction, Position]]:
         return self.__connections
 
     @property
-    def rows_no(self):
+    def rows_no(self) -> int:
         return self.__rows_no
 
     @property
-    def cols_no(self):
+    def cols_no(self) -> int:
         return self.__cols_no
 
     def __init__(self, size: tuple[int, int], specs: list[tuple[float, CellGenerator]]):
@@ -114,20 +197,38 @@ class MazeBoard(MazeBase):
 
         self.__rows_no, self.__cols_no, cells = MazeBoard.__validate_cells(cells)
 
-        self.__nodes: Dict[tuple[int, int], Cell] = \
+        self.__nodes: Dict[Position, Cell] = \
             {
-                (i, j): cells[i][j]
+                BoardPosition((i, j)): cells[i][j]
                 for i in range(self.__rows_no)
                 for j in range(self.cols_no)
             }
 
-        self.__connections: Dict[tuple[int, int], Dict[Direction, tuple[int, int]]] = \
+        self.__connections: Dict[Position, Dict[Direction, Position]] = \
             {
                 node: {}
                 for node in self.__nodes
             }
 
         self.__set_maze()
+
+    def __call__(self, position: tuple[int, int]) -> Position:
+        for node in self.__nodes:
+            if node == position:
+                return node
+
+        raise Exception(
+            f"No position {position} in this base!"
+        )
+
+    def __getitem__(self, key: tuple[int, int]) -> Cell:
+        for node in self.__nodes:
+            if node == key:
+                return self.__nodes[node]
+
+        raise Exception(
+            f"No item {key} in this base!"
+        )
 
     @staticmethod
     def __validate_cells(cells: Iterable[Iterable[Cell]]) -> tuple[int, int, list[list[Cell]]]:
@@ -155,25 +256,29 @@ class MazeBoard(MazeBase):
 
         return rows_no, cols_no, cells
 
-    def __right(self, row: int, col: int):
+    def __right(self, position: tuple[int, int]):
+        row, col = position
         if col != self.__cols_no - 1:
             if self[row, col + 1].is_steppable:
                 return row, col + 1
         return row, col
 
-    def __left(self, row: int, col: int):
+    def __left(self, position: tuple[int, int]):
+        row, col = position
         if col != 0:
             if self[row, col - 1].is_steppable:
                 return row, col - 1
         return row, col
 
-    def __up(self, row: int, col: int):
+    def __up(self, position: tuple[int, int]):
+        row, col = position
         if row != 0:
             if self[row - 1, col].is_steppable:
                 return row - 1, col
         return row, col
 
-    def __down(self, row: int, col: int):
+    def __down(self, position: tuple[int, int]):
+        row, col = position
         if row != self.__rows_no - 1:
             if self[row + 1, col].is_steppable:
                 return row + 1, col
@@ -184,10 +289,10 @@ class MazeBoard(MazeBase):
             cell = self.__nodes[node]
             if isinstance(cell, TeleportCell):
                 while True:
-                    ti, tj = randrange(self.__rows_no), randrange(self.__cols_no)
-                    tn = self.__nodes[(ti, tj)]
+                    tp = choice(list(self.__nodes.keys()))
+                    tn = self.__nodes[tp]
                     if not isinstance(tn, WallCell) and not isinstance(tn, TeleportCell):
-                        cell.state = (ti, tj)
+                        cell.position = tp
                         cell.to_teleport_to = tn
                         break
 
@@ -195,26 +300,33 @@ class MazeBoard(MazeBase):
 
         self.__set_teleport()
 
-        for i, j in self.__nodes:
-            self.__nodes[(i, j)].state = (i, j)
+        for node in self.__nodes:
+            self.__nodes[node].position = node
             directions = Direction.get_all_directions()
 
             for direction in directions:
                 if direction == Direction.RIGHT:
-                    di, dj = self.__right(i, j)
+                    di, dj = self.__right(node.value)
                 elif direction == Direction.LEFT:
-                    di, dj = self.__left(i, j)
+                    di, dj = self.__left(node.value)
                 elif direction == Direction.UP:
-                    di, dj = self.__up(i, j)
+                    di, dj = self.__up(node.value)
                 elif direction == Direction.DOWN:
-                    di, dj = self.__down(i, j)
+                    di, dj = self.__down(node.value)
                 else:
                     raise Exception(
                         f"Board doesn't support {direction.name}!"
                     )
+                for dnode in self.__nodes:
+                    if dnode == (di, dj):
+                        self.__connections[node][direction] = dnode
 
-                self.__connections[(i, j)][direction] = (di, dj)
-
-    def __getitem__(self, key: tuple[int, int]) -> Cell:
-        row, col = key
-        return self.__nodes[(row, col)]
+    def compute_direction(self, node: Position, direction: Direction) -> Position:
+        to_node = self.__connections[node][direction]
+        cell = self.__nodes[to_node]
+        if isinstance(cell, WallCell):
+            return node
+        return to_node
+    
+    def get_directions(self, node: Position) -> list[Direction]:
+        return list(self.__connections[node].keys())

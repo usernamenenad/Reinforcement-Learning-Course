@@ -19,9 +19,7 @@ class GreedyPolicy(Policy, ABC):
     """
 
     @abstractmethod
-    def take_policy(
-            self, s: tuple[int, int], env: MazeEnvironment, actions: list[Action]
-    ) -> Action:
+    def take_policy(self, s: Position, env: MazeEnvironment, actions: list[Action]) -> Action:
         pass
 
 
@@ -30,9 +28,7 @@ class GreedyPolicyQ(GreedyPolicy):
     Greedy Q policy
     """
 
-    def take_policy(
-            self, s: tuple[int, int], env: MazeEnvironment, actions: list[Action]
-    ) -> Action:
+    def take_policy(self, s: Position, env: MazeEnvironment, actions: list[Action]) -> Action:
         qpa: list[tuple[float, Action]] = []
         for a in actions:
             qpa.append((env.q_values[(s, a)], a))
@@ -45,16 +41,13 @@ class GreedyPolicyV(GreedyPolicy):
     Greedy V policy
     """
 
-    def take_policy(
-            self, s: tuple[int, int], env: MazeEnvironment, actions: list[Action]
-    ) -> Action:
+    def take_policy(self, s: Position, env: MazeEnvironment, actions: list[Action]) -> Action:
         vpa: list[tuple[float, Action]] = []
         for a in actions:
             news = env(s, a)
             v_sum = sum(
                 [
-                    new["Probability"]
-                    * (new["Reward"] + env.gamma * env.v_values[new["New state"]])
+                    new["Probability"] * (new["Reward"] + env.gamma * env.v_values[new["New state"]])
                     for new in news
                 ]
             )

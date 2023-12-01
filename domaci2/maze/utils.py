@@ -3,26 +3,11 @@ from enum import Enum, auto
 from typing import Callable
 
 
-class Direction(Enum):
-    RIGHT = auto()
-    LEFT = auto()
-    UP = auto()
-    DOWN = auto()
-
-    @staticmethod
-    def get_all_directions():
-        return [Direction.RIGHT, Direction.LEFT, Direction.UP, Direction.DOWN]
-
-
-class Action(Enum):
-    ACTION_A1 = auto()  # On Level 1 assignment, this would collapse to direction RIGHT
-    ACTION_A2 = auto()  # On Level 1 assignment, this would collapse to direction LEFT
-    ACTION_A3 = auto()  # On Level 1 assignment, this would collapse to direction UP
-    ACTION_A4 = auto()  # On Level 1 assignment, this would collapse to direction DOWN
-
-    @staticmethod
-    def get_all_actions():
-        return [Action.ACTION_A1, Action.ACTION_A2, Action.ACTION_A4, Action.ACTION_A3]
+class Position(ABC):
+    @property
+    @abstractmethod
+    def value(self):
+        pass
 
 
 class Cell(ABC):
@@ -32,20 +17,17 @@ class Cell(ABC):
 
     @property
     @abstractmethod
-    def state(self) -> tuple[int, int]:
+    def position(self) -> Position:
         pass
 
-    @state.setter
-    def state(self, state: tuple[int, int]):
+    @position.setter
+    @abstractmethod
+    def position(self, position: Position):
         pass
 
     @property
     @abstractmethod
     def reward(self) -> float:
-        pass
-
-    @reward.setter
-    def reward(self, reward: float):
         pass
 
     @property
@@ -74,28 +56,24 @@ class RegularCell(Cell):
     """
 
     @property
-    def state(self) -> tuple[int, int]:
-        return self.__state
+    def position(self) -> Position:
+        return self.__position
 
-    @state.setter
-    def state(self, state: tuple[int, int]):
-        self.__state = state[0], state[1]
+    @position.setter
+    def position(self, position: Position):
+        self.__position = position
 
     @property
     def reward(self) -> float:
         return self.__reward
-
-    @reward.setter
-    def reward(self, reward: float):
-        self.__reward = reward
 
     @property
     def color(self) -> tuple[int, int, int]:
         return (255, 255, 255) if self.reward == -1 else (255, 0, 0)
 
     def __init__(self, reward: float):
+        self.__position: Position = None
         self.__reward: float = reward
-        self.__state: tuple[int, int] = -1, -1
 
 
 class TerminalCell(Cell):
@@ -107,20 +85,16 @@ class TerminalCell(Cell):
     """
 
     @property
-    def state(self) -> tuple[int, int]:
-        return self.__state
+    def position(self) -> Position:
+        return self.__position
 
-    @state.setter
-    def state(self, state: tuple[int, int]):
-        self.__state = state[0], state[1]
+    @position.setter
+    def position(self, position: Position):
+        self.__position = position
 
     @property
     def reward(self) -> float:
         return self.__reward
-
-    @reward.setter
-    def reward(self, reward: float):
-        self.__reward = reward
 
     @property
     def color(self) -> tuple[int, int, int]:
@@ -131,8 +105,8 @@ class TerminalCell(Cell):
         return True
 
     def __init__(self, reward: float):
+        self.__position: Position = None
         self.__reward: float = reward
-        self.__state: tuple[int, int] = -1, -1
 
 
 class TeleportCell(Cell):
@@ -145,20 +119,16 @@ class TeleportCell(Cell):
     """
 
     @property
-    def state(self) -> tuple[int, int]:
-        return self.__state
+    def position(self) -> Position:
+        return self.__position
 
-    @state.setter
-    def state(self, state: tuple[int, int]):
-        self.__state = state[0], state[1]
+    @position.setter
+    def position(self, position: Position):
+        self.__position = position
 
     @property
     def reward(self) -> float:
-        return self.__reward
-
-    @reward.setter
-    def reward(self, reward: float):
-        self.__reward = reward
+        return self.__to_teleport_to.reward
 
     @property
     def color(self) -> tuple[int, int, int]:
@@ -185,9 +155,8 @@ class TeleportCell(Cell):
         return self.to_teleport_to.has_value
 
     def __init__(self):
+        self.__position: Position = None
         self.__to_teleport_to: Cell = None
-        self.__reward: float = None
-        self.__state: tuple[int, int] = -1, -1
 
 
 class WallCell(Cell):
@@ -198,20 +167,16 @@ class WallCell(Cell):
     """
 
     @property
-    def state(self) -> tuple[int, int]:
-        return self.__state
+    def position(self) -> Position:
+        return self.__position
 
-    @state.setter
-    def state(self, state: tuple[int, int]):
-        self.__state = state[0], state[1]
+    @position.setter
+    def position(self, position: Position):
+        self.__position = position
 
     @property
     def reward(self) -> float:
         return self.__reward
-
-    @reward.setter
-    def reward(self, reward: float):
-        self.__reward = reward
 
     @property
     def color(self) -> tuple[int, int, int]:
@@ -226,8 +191,30 @@ class WallCell(Cell):
         return False
 
     def __init__(self):
+        self.__position: Position = None
         self.__reward: float = 0
-        self.__state: tuple[int, int] = -1, -1
 
 
 CellGenerator = Callable[[], Cell]
+
+
+class Direction(Enum):
+    RIGHT = auto()
+    LEFT = auto()
+    UP = auto()
+    DOWN = auto()
+
+    @staticmethod
+    def get_all_directions():
+        return [Direction.RIGHT, Direction.LEFT, Direction.UP, Direction.DOWN]
+
+
+class Action(Enum):
+    ACTION_A1 = auto()  # On Level 1 assignment, this would collapse to direction RIGHT
+    ACTION_A2 = auto()  # On Level 1 assignment, this would collapse to direction LEFT
+    ACTION_A3 = auto()  # On Level 1 assignment, this would collapse to direction UP
+    ACTION_A4 = auto()  # On Level 1 assignment, this would collapse to direction DOWN
+
+    @staticmethod
+    def get_all_actions():
+        return [Action.ACTION_A1, Action.ACTION_A2, Action.ACTION_A4, Action.ACTION_A3]

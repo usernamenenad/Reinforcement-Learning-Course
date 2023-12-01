@@ -1,12 +1,8 @@
-from abc import ABC, abstractmethod
 from copy import deepcopy
-from random import choices, randint
 from random import random
-from typing import Iterable, Callable, Dict
 
 import numpy as np
 
-from .utils import *
 from .base import *
 
 
@@ -24,144 +20,106 @@ class MazeEnvironment:
     """
 
     @property
-    def board(self) -> MazeBoard:
-        return self.__board
-
-    @board.setter
-    def board(self, board: MazeBoard):
-        self.__board = board
+    def base(self) -> MazeBase:
+        return self.__base
 
     @property
-    def states(self) -> list[tuple[int, int]]:
+    def states(self) -> list[Position]:
         return self.__states
 
-    @states.setter
-    def states(self, states: list[tuple[int, int]]):
-        if self.__states:
-            self.__states.clear()
-        for state in states:
-            self.states.append((state[0], state[1]))
-
     @property
-    def q_values(self) -> Dict[tuple[tuple[int, int], Action], float]:
+    def q_values(self) -> Dict[tuple[Position, Action], float]:
         return self.__q_values
 
-    @q_values.setter
-    def q_values(self, q_values: Dict[tuple[tuple[int, int], Action], float]):
-        if self.__q_values:
-            self.__q_values.clear()
-        for state, action in q_values:
-            self.__q_values[((state[0], state[1]), action)] = q_values[(state, action)]
-
     @property
-    def v_values(self) -> Dict[tuple[int, int], float]:
+    def v_values(self) -> Dict[Position, float]:
         return self.__v_values
 
-    @v_values.setter
-    def v_values(self, v_values: Dict[tuple[int, int], float]):
-        if self.__v_values:
-            self.__v_values.clear()
-        for state in v_values:
-            self.v_values[(state[0], state[1])] = v_values[state]
-
     @property
-    def probabilities(
-            self,
-    ) -> Dict[tuple[tuple[int, int], Action], Dict[Direction, float]]:
+    def probabilities(self) -> Dict[tuple[Position, Action], Dict[Direction, float]]:
         return self.__probabilities
-
-    @probabilities.setter
-    def probabilities(
-            self,
-            probabilities: Dict[tuple[tuple[int, int], Action], Dict[Direction, float]],
-    ):
-        if self.__probabilities:
-            self.__probabilities.clear()
-        for state, action in probabilities:
-            self.__probabilities[((state[0], state[1]), action)] = probabilities[
-                (state, action)
-            ]
 
     @property
     def gamma(self) -> float:
         return self.__gamma
 
-    @gamma.setter
-    def gamma(self, gamma: float):
-        self.__gamma = gamma
-
-    def __init__(self, board: MazeBoard, gamma: float = 1):
+    def __init__(self, base: MazeBase, gamma: float = 1):
         """
         Initializer for the environment by specifying the underlying
         maze board.
         """
-        self.__board = board
-        self.__states = [
-            (i, j)
-            for i in range(self.board.rows_no)
-            for j in range(self.board.cols_no)
-            if self.board[i, j].is_steppable and not isinstance(self.board[i, j], TeleportCell)]
+        self.__base = base
+        self.__states: list[Position] = \
+            [
+                node
+                for node in self.base.nodes
+                if self.base[node].is_steppable and not isinstance(self.__base[node], TeleportCell)
+            ]
 
-        self.__probabilities: Dict[
-            tuple[tuple[int, int], Action], Dict[Direction, float]
-        ] = {}
+        self.__probabilities: Dict[tuple[Position, Action], Dict[Direction, float]] = {}
 
-        for s in self.states:
+        for s in self.__states:
             for a in self.get_actions():
-                no_probs = len(self.get_directions())
+                no_probs = len(self.base.get_directions(s))
                 probabilities = np.round(
                     np.random.dirichlet(np.ones(no_probs), size=1)[0], 3
                 ).tolist()
                 self.__probabilities[(s, a)] = {}
-                for i, direction in enumerate(self.get_directions()):
+                for i, direction in enumerate(self.base.get_directions(s)):
                     self.__probabilities[(s, a)][direction] = probabilities[i]
 
-        self.__q_values = {
-            (s, a): -10 * random() if not self.is_terminal(s) else 0
-            for s in self.states
-            for a in self.get_actions()
-        }
+        self.__q_values: Dict[tuple[Position, Action], float] = \
+            {
+                (s, a): -10 * random() if not self.is_terminal(s) else 0
+                for s in self.__states
+                for a in self.get_actions()
+            }
 
-        self.__v_values = {s: self.determine_v(s) for s in self.states}
+        self.__v_values: Dict[Position, float] = \
+            {
+                s: self.determine_v(s) for s in self.__states
+            }
 
         self.__gamma = gamma
 
-    def __call__(self, state: tuple[int, int], action: Action):
-        row, col = state
-        ss_next = []
-        for direction in self.get_directions():
-            new_row, new_col = self.compute_direction(row, col, direction)
-            new_cell = self.board[new_row, new_col]
+    def __call__(self, state, action: Action):
+        snext = []
+
+        if not isinstance(state, Position):
+            state = self.base(state)
+
+        for direction in self.base.get_directions(state):
+            new_state = self.compute_direction(state, direction)
+            new_cell = self.__base[new_state]
 
             if isinstance(new_cell, TeleportCell):
-                new_row = new_cell.to_teleport_to.state[0]
-                new_col = new_cell.to_teleport_to.state[1]
+                new_state = new_cell.to_teleport_to.position
                 new_cell = new_cell.to_teleport_to
 
-            ss_next.append(
+            snext.append(
                 {
                     "Direction": direction,
-                    "New state": (new_row, new_col),
+                    "New state": new_state,
                     "Reward": new_cell.reward,
                     "Probability": self.probabilities[(state, action)][direction],
                     "Is terminal": new_cell.is_terminal,
                 }
             )
 
-        return ss_next
+        return snext
 
-    def validate_position(self, row: int, col: int):
-        """
-        A utility function that validates a position.
-        """
-        if row < 0 or row >= self.board.rows_no:
-            raise Exception("Invalid row position")
-        if col < 0 or col >= self.board.cols_no:
-            raise Exception("Invalid column position")
-        if not self.board[row, col].is_steppable:
-            raise Exception("Invalid position: unsteppable cell")
+    # def validate_position(self, row: int, col: int):
+    #     """
+    #     A utility function that validates a position.
+    #     """
+    #     if row < 0 or row >= self.base.rows_no:
+    #         raise Exception("Invalid row position")
+    #     if col < 0 or col >= self.base.cols_no:
+    #         raise Exception("Invalid column position")
+    #     if not self.base[row, col].is_steppable:
+    #         raise Exception("Invalid position: unsteppable cell")
 
-    def compute_direction(self, row: int, col: int, direction: Direction) -> tuple[int, int]:
+    def compute_direction(self, state: Position, direction: Direction) -> Position:
         """
         Compute a concrete direction for a certain environment.
         Firstly, we define inner functions for movement in all
@@ -170,19 +128,19 @@ class MazeEnvironment:
 
         if direction not in self.get_directions():
             raise Exception(
-                f"Agent cannot move in direction {direction.name} in this environment."
+                f"Agent cannot move in direction {direction.name} in this environment!"
             )
 
-        return self.board.connections[(row, col)][direction]
+        return self.__base.compute_direction(state, direction)
 
-    def determine_v(self, s: tuple[int, int]):
+    def determine_v(self, s: Position):
         q = []
         for a in self.get_actions():
             q.append(
                 sum(
                     [
-                        self.probabilities[(s, a)][direction] * self.q_values[(s, a)]
-                        for direction in self.get_directions()
+                        self.__probabilities[(s, a)][direction] * self.__q_values[(s, a)]
+                        for direction in self.base.get_directions(s)
                     ]
                 )
             )
@@ -195,25 +153,20 @@ class MazeEnvironment:
                 for a in self.get_actions():
                     news = self(s, a)
                     # q(s, a) = sum(p(s^+, r | s, a)(r + gamma * q(s^+, a^+)))
-                    self.q_values[(s, a)] = sum(
+                    self.__q_values[(s, a)] = sum(
                         [
-                            new["Probability"]
-                            * (
-                                    new["Reward"]
-                                    + self.gamma * self.determine_v(new["New state"])
-                            )
+                            new["Probability"] * (new["Reward"] + self.gamma * self.determine_v(new["New state"]))
                             for new in news
                         ]
                     )
-                self.v_values[s] = self.determine_v(s)
+                self.__v_values[s] = self.determine_v(s)
 
     def compute_values(self, eps: float = 0.01, max_iter: int = 1000):
         for k in range(max_iter):
             ov = deepcopy(self.q_values)
             self.__update_values()
-            err = max(
-                [abs(self.q_values[(s, a)] - ov[(s, a)]) for s, a in self.q_values]
-            )
+            err = max([abs(self.__q_values[(s, a)] - ov[(s, a)])
+                       for s, a in self.__q_values])
             if err < eps:
                 return k
 
@@ -229,5 +182,5 @@ class MazeEnvironment:
     def get_directions(self):
         return Direction.get_all_directions()
 
-    def is_terminal(self, state: tuple[int, int]):
-        return self.board[state].is_terminal
+    def is_terminal(self, state: Position):
+        return self.__base[state].is_terminal

@@ -19,38 +19,38 @@ class TestMaze(unittest.TestCase):
             (1, lambda: TeleportCell()),
         ]
 
-        # board = MazeBoard(size=(8, 8), specs=DEFAULT_SPECS)
-        # Info.draw_board(board)
-        graph = MazeGraph(no_nodes=15, specs=DEFAULT_SPECS)
-        Info.draw_graph(graph)
-        plt.show()
+        base = MazeBoard(size=(8, 8), specs=DEFAULT_SPECS)
+        # Info.draw_base(board)
+        # base = MazeGraph(no_nodes=15, specs=DEFAULT_SPECS)
+        # Info.draw_base(graph)
 
         # # Constructing an environment out of board
-        # env = MazeEnvironment(board=board, gamma=0.9)
+        env = MazeEnvironment(base, gamma=0.9)
         #
         # # Constructing the agent which lives in environment
-        # agent = Agent(env, actions=env.get_actions())
+        agent = Agent(env, actions=env.get_actions())
+        # Info.draw_values(agent)
         #
-        # Info.print_probabilities(agent)
+        Info.print_probabilities(agent)
         #
-        # _, axes = plt.subplots(nrows=2, ncols=2, figsize=(18, 18))
-        # axes = axes.flatten()
+        _, axes = plt.subplots(nrows=2, ncols=2, figsize=(18, 18))
+        axes = axes.flatten()
         #
-        # Info.draw_values(agent=agent, ax=axes[0])
-        # axes[0].set_title("Initial V values")
+        Info.draw_values(agent, ax=axes[0])
+        axes[0].set_title("Initial V values")
         #
-        # k = env.compute_values()
+        k = env.compute_values()
         #
-        # Info.draw_values(agent=agent, ax=axes[1])
-        # axes[1].set_title(f"V values computed using Q values after {k} iterations.")
+        Info.draw_values(agent, ax=axes[1])
+        axes[1].set_title(f"V values computed using Q values after {k} iterations.")
         #
-        # Info.draw_policy(agent, "greedy_v", ax=axes[2])
-        # axes[2].set_title("Optimal policy using V values")
+        Info.draw_policy(agent, "greedy_v", ax=axes[2])
+        axes[2].set_title("Optimal policy using V values")
         #
-        # Info.draw_policy(agent, "greedy_q", ax=axes[3])
-        # axes[3].set_title("Optimal policy using Q values")
-        #
-        # plt.show()
+        Info.draw_policy(agent, "greedy_q", ax=axes[3])
+        axes[3].set_title("Optimal policy using Q values")
+
+        plt.show()
 
 
 def main() -> None:
