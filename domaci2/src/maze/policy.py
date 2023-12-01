@@ -25,7 +25,7 @@ class GreedyPolicy(Policy, ABC):
 
 class GreedyPolicyQ(GreedyPolicy):
     """
-    Greedy Q policy
+    Inherited from GreedyPolicy - greedy policy using purely Q values.
     """
 
     def take_policy(self, s: Position, env: MazeEnvironment, actions: list[Action]) -> Action:
@@ -38,7 +38,7 @@ class GreedyPolicyQ(GreedyPolicy):
 
 class GreedyPolicyV(GreedyPolicy):
     """
-    Greedy V policy
+    Inherited from GreedyPolicy - greedy policy using purely V values.
     """
 
     def take_policy(self, s: Position, env: MazeEnvironment, actions: list[Action]) -> Action:

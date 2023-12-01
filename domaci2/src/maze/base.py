@@ -1,10 +1,14 @@
-from typing import Dict, Iterable
 from random import randint, choice, choices
+from typing import Dict, Iterable
 
 from .utils import *
 
 
 class MazeBase(ABC):
+    """
+    Base class for maze.
+    """
+
     @property
     @abstractmethod
     def nodes(self):
@@ -25,6 +29,9 @@ class MazeBase(ABC):
 
 
 class GraphPosition(Position):
+    """
+    Inherited from Position class - models a graph node.
+    """
 
     @property
     def value(self) -> int:
@@ -48,6 +55,9 @@ class GraphPosition(Position):
 
 
 class MazeGraph(MazeBase):
+    """
+    Inherited from MazeBase class - it models a graph.
+    """
 
     @property
     def nodes(self) -> Dict[Position, Cell]:
@@ -99,6 +109,10 @@ class MazeGraph(MazeBase):
         )
 
     def __set_teleport(self):
+        """
+        Private method for configuring teleport cells - to what
+        cells will agent teleport when stepped onto teleport cell.
+        """
         for node in self.__nodes:
             self.__nodes[node].position = node
             cell = self.__nodes[node]
@@ -112,6 +126,10 @@ class MazeGraph(MazeBase):
                         break
 
     def __set_maze(self):
+        """
+        Private method for creating graphs -
+        making nodes and random edges.
+        """
 
         self.__set_teleport()
 
@@ -127,6 +145,10 @@ class MazeGraph(MazeBase):
                     self.__connections[node][direction] = to_node
 
     def compute_direction(self, node: Position, direction: Direction) -> Position:
+        """
+        Returns a node that is in direction from a given node. If that is a wall cell,
+        it returns given node.
+        """
         to_node = self.__connections[node][direction]
         cell = self.__nodes[to_node]
         if isinstance(cell, WallCell):
@@ -138,6 +160,10 @@ class MazeGraph(MazeBase):
 
 
 class BoardPosition(Position):
+    """
+    Inherited from Position class - models a board square.
+    """
+
     @property
     def value(self) -> tuple[int, int]:
         return self.__value
@@ -168,6 +194,9 @@ class BoardPosition(Position):
 
 
 class MazeBoard(MazeBase):
+    """
+    Inherited from MazeBase class - models a board.
+    """
 
     @property
     def nodes(self) -> Dict[Position, Cell]:
@@ -285,6 +314,11 @@ class MazeBoard(MazeBase):
         return row, col
 
     def __set_teleport(self):
+        """
+        Private method for configuring teleport cells - to what
+        cells will agent teleport when stepped onto teleport cell.
+        """
+
         for node in self.__nodes:
             cell = self.__nodes[node]
             if isinstance(cell, TeleportCell):
@@ -297,6 +331,10 @@ class MazeBoard(MazeBase):
                         break
 
     def __set_maze(self):
+        """
+        Private method for creating board -
+        making board squares (here named nodes).
+        """
 
         self.__set_teleport()
 
@@ -322,7 +360,11 @@ class MazeBoard(MazeBase):
                         self.__connections[node][direction] = dnode
 
     def compute_direction(self, node: Position, direction: Direction) -> Position:
+        """
+        Returns a node that is in direction from a given node. If that is a wall cell,
+        it returns given node.
+        """
         return self.__connections[node][direction]
-    
+
     def get_directions(self, node: Position) -> list[Direction]:
         return list(self.__connections[node].keys())

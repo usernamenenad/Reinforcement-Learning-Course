@@ -3,9 +3,7 @@ from .policy import *
 
 class Agent:
     """
-    An agent class.
-
-    Representing single agent which can be a part of several environments.
+    A class representing an agent.
     """
 
     @property
@@ -17,6 +15,11 @@ class Agent:
         return self.__actions
 
     def __init__(self, env: MazeEnvironment, actions: list[Action]):
+        """
+        :param env: Agent's environment.
+        :param actions: Possible actions
+                        that agent is able to take (not to be mixed with *environment's possible actions*).
+        """
         self.__env: MazeEnvironment = env
         self.__actions: list[Action] = actions
 
