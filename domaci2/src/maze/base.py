@@ -322,11 +322,7 @@ class MazeBoard(MazeBase):
                         self.__connections[node][direction] = dnode
 
     def compute_direction(self, node: Position, direction: Direction) -> Position:
-        to_node = self.__connections[node][direction]
-        cell = self.__nodes[to_node]
-        if isinstance(cell, WallCell):
-            return node
-        return to_node
+        return self.__connections[node][direction]
     
     def get_directions(self, node: Position) -> list[Direction]:
         return list(self.__connections[node].keys())
