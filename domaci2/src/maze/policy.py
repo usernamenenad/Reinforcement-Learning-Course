@@ -1,4 +1,3 @@
-from abc import ABC, abstractmethod
 from typing import Dict
 
 from .environment import MazeEnvironment
@@ -29,7 +28,7 @@ class GreedyPolicyQ(GreedyPolicy):
     """
 
     def take_policy(self, s: Position, env: MazeEnvironment, actions: list[Action]) -> Action:
-        qpa: list[tuple[float, Action]] = []
+        qpa: list[tuple[float, Action]] = list()
         for a in actions:
             qpa.append((env.q_values[(s, a)], a))
 
@@ -42,7 +41,7 @@ class GreedyPolicyV(GreedyPolicy):
     """
 
     def take_policy(self, s: Position, env: MazeEnvironment, actions: list[Action]) -> Action:
-        vpa: list[tuple[float, Action]] = []
+        vpa: list[tuple[float, Action]] = list()
         for a in actions:
             news = env(s, a)
             v_sum = sum(

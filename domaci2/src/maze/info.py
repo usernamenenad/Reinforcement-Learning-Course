@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import networkx as nx
-
 from colormap import rgb2hex
 from tabulate import tabulate
 
@@ -11,7 +10,6 @@ from .environment import *
 class Info:
     @staticmethod
     def __draw_board(board: MazeBoard, ax=None):
-        ax = ax if ax else plt
         board_img = np.ones(shape=(board.rows_no, board.cols_no, 3), dtype=np.uint8)
 
         for i in range(board.rows_no):
@@ -29,14 +27,12 @@ class Info:
 
     @staticmethod
     def __draw_board_values(agent: Agent, ax=None):
-        ax = ax if ax else plt
         Info.__draw_board(agent.env.base, ax=ax)
         for s in agent.env.states:
             ax.text(s[1] - 0.4, s[0] + 0.1, f"{agent.env.v_values[s]:.1f}")
 
     @staticmethod
     def __draw_board_policy(agent: Agent, policy: str, ax=None):
-        ax = ax if ax else plt
         policy = GreedyPolicyV() if policy == "greedy_v" else GreedyPolicyQ()
         Info.__draw_board(agent.env.base, ax=ax)
         sa = agent.determine_optimal_actions(policy)
@@ -52,11 +48,9 @@ class Info:
 
     @staticmethod
     def __draw_graph(graph: MazeGraph, ax=None):
-        ax = ax if ax else plt
         g = nx.DiGraph()
         colors = {}
-
-        # Defining nodes and edges should be separable, idk why
+        labels = {}
 
         # Defining nodes
         for node in graph.nodes:
@@ -64,6 +58,7 @@ class Info:
 
         # Defining edges
         for node in graph.nodes:
+            labels[node] = len(labels)
             cell = graph.nodes[node]
             colors[node] = rgb2hex(cell.color[0], cell.color[1], cell.color[2])
             if node in graph.connections:
@@ -73,11 +68,29 @@ class Info:
                     g.add_edge(node.value, to_node.value,
                                weight=graph[to_node].reward)
 
+        pos = nx.shell_layout(g)
+        cmap = plt.cm.RdBu
+        ew = nx.get_edge_attributes(g, 'weight')
+        weights = [ew[edge] for edge in ew]
+        norm = plt.Normalize(min(weights), max(weights))
+        ec = [cmap(norm(weight)) for weight in weights]
+
+        nx.draw(g,
+                pos=pos,
+                labels=labels,
+                edge_color=ec,
+                width=2,
+                font_size=10,
+                with_labels=True,
+                node_color=[colors[node] for node in colors],
+                node_size=1500,
+                edgecolors='black',
+                ax=ax)
+
         return g, colors
 
     @staticmethod
     def __draw_graph_values(agent: Agent, ax=None):
-        ax = ax if ax else None
         graph = agent.env.base
         g, colors = Info.__draw_graph(graph, ax)
 
@@ -89,7 +102,7 @@ class Info:
                 labels[node] = str(node.value) + f', {agent.env.v_values[node]:.1f}'
             else:
                 if isinstance(cell, TeleportCell):
-                    labels[node] = str(cell.to_teleport_to.position.value)
+                    labels[node] = cell.to_teleport_to.position.value
                 elif isinstance(cell, WallCell):
                     labels[node] = node.value
 
@@ -114,7 +127,6 @@ class Info:
 
     @staticmethod
     def __draw_graph_policy(agent: Agent, policy: str, ax=None):
-        ax = ax if ax else plt
         policy = GreedyPolicyV() if policy == "greedy_v" else GreedyPolicyQ()
         g, colors = Info.__draw_graph(agent.env.base, ax=ax)
 
@@ -146,19 +158,21 @@ class Info:
                 font_size=10,
                 with_labels=True,
                 node_color=[colors[node] for node in colors],
-                node_size=2000,
+                node_size=1500,
                 edgecolors='black',
                 ax=ax)
 
     @staticmethod
     def draw_base(base: MazeBase, ax=None):
+        ax = ax if ax else plt
         if isinstance(base, MazeBoard):
             Info.__draw_board(base, ax)
         elif isinstance(base, MazeGraph):
-            Info.__draw_graph(base)
+            Info.__draw_graph(base, ax)
 
     @staticmethod
     def draw_values(agent: Agent, ax=None):
+        ax = ax if ax else plt
         if isinstance(agent.env.base, MazeBoard):
             Info.__draw_board_values(agent, ax)
         elif isinstance(agent.env.base, MazeGraph):
@@ -166,16 +180,17 @@ class Info:
 
     @staticmethod
     def draw_policy(agent: Agent, policy: str, ax=None):
+        ax = ax if ax else plt
         if isinstance(agent.env.base, MazeBoard):
             Info.__draw_board_policy(agent, policy, ax)
         elif isinstance(agent.env.base, MazeGraph):
             Info.__draw_graph_policy(agent, policy, ax)
 
     @staticmethod
-    def print_probabilities(agent: Agent):
-        to_print = []
-        for s, a in agent.env.probabilities:
-            news = agent.take_action(s, a)
+    def print_probabilities(env: MazeEnvironment):
+        to_print = list()
+        for s, a in env.probabilities:
+            news = env(s, a)
             for new in news:
                 to_print.append(
                     {
@@ -184,7 +199,7 @@ class Info:
                         "Direction": new["Direction"].name,
                         "Next state": new["New state"].value,
                         "Reward": new["Reward"],
-                        "Probability(s+, r | s, a)": agent.env.probabilities[(s, a)][
+                        "Probability(s+, r | s, a)": env.probabilities[(s, a)][
                             new["Direction"]
                         ],
                     }

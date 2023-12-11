@@ -19,10 +19,10 @@ class TestMaze(unittest.TestCase):
             (1, lambda: TeleportCell()),
         ]
 
-        base = MazeBoard(size=(8, 8), specs=DEFAULT_SPECS)
+        # base = MazeBoard(size=(8, 8), specs=DEFAULT_SPECS)
         # Info.draw_base(board)
-        # base = MazeGraph(no_nodes=15, specs=DEFAULT_SPECS)
-        # Info.draw_base(graph)
+        base = MazeGraph(no_nodes=15, specs=DEFAULT_SPECS)
+        Info.draw_base(graph)
 
         # # Constructing an environment out of board
         env = MazeEnvironment(base, gamma=0.9)

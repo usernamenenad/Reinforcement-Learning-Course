@@ -1,3 +1,3 @@
-from test import *
+import maze
 
-test.main()
+maze.main()

@@ -67,6 +67,10 @@ class MazeGraph(MazeBase):
     def connections(self) -> Dict[Position, Dict[Direction, Position]]:
         return self.__connections
 
+    @property
+    def size(self) -> int:
+        return self.__no_nodes
+
     def __init__(self, no_nodes: int, specs: list[tuple[float, CellGenerator]]):
         weights = [w for w, _ in specs]
         generators = [g for _, g in specs]
@@ -214,6 +218,10 @@ class MazeBoard(MazeBase):
     def cols_no(self) -> int:
         return self.__cols_no
 
+    @property
+    def size(self) -> tuple[int, int]:
+        return self.__rows_no, self.__cols_no
+
     def __init__(self, size: tuple[int, int], specs: list[tuple[float, CellGenerator]]):
         width, height = size
         weights = [w for w, _ in specs]
@@ -267,7 +275,7 @@ class MazeBoard(MazeBase):
         If checks are successful, it will return number of board rows and
         columns, as well as cells themselves.
         """
-        cells = [list(row) for row in cells] if cells else []
+        cells = [list(row) for row in cells] if cells else list()
 
         if not cells:
             raise Exception("Number of rows in a board must be at least 1.")

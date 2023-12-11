@@ -81,7 +81,7 @@ class MazeEnvironment:
         Makes possible for environment class to act as a Markov Decision process -
         for a given state and action, it will return new states and rewards.
         """
-        snext = []
+        snext = list()
 
         if not isinstance(state, Position):
             state = self.base(state)
@@ -179,7 +179,7 @@ class MazeEnvironment:
         """
         Method for determining V values using Q values.
         """
-        q = []
+        q = list()
         for a in self.get_actions():
             q.append(
                 sum(
