@@ -41,3 +41,9 @@ python main.py --compute
 ```
 
 where you'll be asked for what agent should V values be executed.
+
+If you want to display any info, do that by 
+
+```powershell
+python main.py --info *INFO FOR*
+```
