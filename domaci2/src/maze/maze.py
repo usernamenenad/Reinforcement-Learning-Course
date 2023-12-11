@@ -1,3 +1,6 @@
+# This file is only used for CLI implementation
+# and it is not truly necessary to look into.
+
 import argparse
 import os
 import shelve
@@ -10,32 +13,43 @@ def main():
     if not os.path.exists("./dbdir"):
         os.makedirs("./dbdir")
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        prog="Reinforcement Learning Maze",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+
     parser.add_argument("-b", "--base",
-                        choices=["graph", "board"])
+                        choices=["graph", "board"],
+                        help="Used for generating a base. Provide a base type when executing.")
 
     parser.add_argument("-s", "--size",
                         type=int,
-                        nargs="+")
+                        nargs="+",
+                        help="Used for specifying a base size. Provide an `int` for `graph` bases or `tuple(int, int)` for `board` bases.")
 
     parser.add_argument("-env", "--environment",
                         nargs=1,
-                        type=float)
+                        type=float,
+                        help="Used for generating an environment. Provide a `gamma` value when executing.")
 
     parser.add_argument("-a", "--agent",
-                        action="store_true")
+                        action="store_true",
+                        help="Used for generating an agent.")
 
     parser.add_argument("-cmpt", "--compute",
-                        action="store_true")
+                        action="store_true",
+                        help="Used for computing optimal V values for a given environment.")
 
     parser.add_argument("-i", "--info",
                         choices=["base", "bases",
                                  "env", "envs",
                                  "agent", "agents",
-                                 "probs"])
+                                 "probs"],
+                        help="Used for displaying information about the maze itself.")
 
     parser.add_argument("-d", "--delete",
-                        action="store_true")
+                        action="store_true",
+                        help="Delete everything you've created [[DANGEROUS]].")
 
     args = parser.parse_args()
 
@@ -68,14 +82,16 @@ def main():
                             "Provide not more or less than number of nodes in a graph!"
                         )
 
-                    base = MazeGraph(no_nodes=args.size[0], specs=default_specs)
+                    base = MazeGraph(
+                        no_nodes=args.size[0], specs=default_specs)
 
                 case "board":
                     if len(args.size) != 2:
                         raise Exception(
                             "Provide not more or less than number of rows and columns in a graph!"
                         )
-                    base = MazeBoard(size=tuple(args.size), specs=default_specs)
+                    base = MazeBoard(size=tuple(args.size),
+                                     specs=default_specs)
 
             name = name if name != "" else "base" + str(len(db["bases"]))
             db["bases"][name] = base
@@ -114,7 +130,9 @@ def main():
                     "Have at least one environment created before you create an agent!"
                 )
 
-            ename = input("What environment would you like to use (should be already created): ")
+            ename = input(
+                "What environment would you like to use (should be already created): "
+            )
 
             eb = db["envs"].get(ename)
             if not eb:
@@ -122,14 +140,16 @@ def main():
                     f"Environment named {ename} is not created yet!"
                 )
 
-            aname = input("Type a name for agent or press enter to set a default name: ")
+            aname = input(
+                "Type a name for agent or press enter to set a default name: ")
 
             if "agents" not in db:
                 db["agents"] = dict()
 
             aname = aname if aname != "" else "agent" + str(len(db["agents"]))
 
-            db["agents"][aname] = [Agent(eb[0], actions=eb[0].get_actions()), ename]
+            db["agents"][aname] = [
+                Agent(eb[0], actions=eb[0].get_actions()), ename]
 
         if args.compute:
             if "agents" not in db:
@@ -157,7 +177,8 @@ def main():
             k = ae[0].env.compute_values()
 
             Info.draw_values(ae[0], ax=axes[1])
-            axes[1].set_title(f"V values computed using Q values after {k} iterations.")
+            axes[1].set_title(
+                f"V values computed using Q values after {k} iterations.")
 
             Info.draw_policy(ae[0], "greedy_v", ax=axes[2])
             axes[2].set_title("Optimal policy using V values")
@@ -171,11 +192,13 @@ def main():
             match args.info:
 
                 case "base":
-                    name = input("Provide a base name that you want to look at: ")
+                    name = input(
+                        "Provide a base name that you want to look at: ")
 
                     base = db["bases"].get(name)
                     if base:
-                        _, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 5))
+                        _, axes = plt.subplots(
+                            nrows=1, ncols=1, figsize=(10, 5))
                         Info.draw_base(base, ax=axes)
                         plt.show()
                     else:
@@ -198,7 +221,36 @@ def main():
 
                         to_print.append([bname, btype, bsize])
 
-                    print(tabulate(to_print, headers=["Base name", "Base type", "Base size"], tablefmt="rst"))
+                    print(tabulate(to_print, headers=[
+                          "Base name", "Base type", "Base size"], tablefmt="rst"))
+
+                case "env":
+                    if "envs" not in db:
+                        raise Exception(
+                            "You haven't created any environments yet!"
+                        )
+
+                        ename = input(
+                            "What base would you like to look into?: "
+                        )
+
+                        eb = db["envs"][ename]
+
+                        if not eb:
+                            raise Exception(
+                                f"No base named {ename}!"
+                            )
+
+                        bname = eb[1]
+                        btype = db["bases"][bname].__class__.__name__
+                        egamma = eb[0].gamma
+
+                        print(tabulate([ename, bname, btype, egamma],
+                                       headers=["Environment name", "Base name",
+                                                "Base type", "\u03B3 value"],
+                                       tablefmt="rst"
+                                       )
+                              )
 
                 case "envs":
                     if "envs" not in db:
@@ -211,10 +263,39 @@ def main():
                     for ename in db["envs"]:
                         bname = db["envs"][ename][1]
                         btype = db["bases"][bname].__class__.__name__
+                        egamma = db["envs"][ename][0].gamma
 
-                        to_print.append([ename, bname, btype])
+                        to_print.append([ename, bname, btype, egamma])
 
-                    print(tabulate(to_print, headers=["Environment name", "Base name", "Base type"], tablefmt="rst"))
+                    print(tabulate(to_print,
+                                   headers=["Environment name", "Base name",
+                                            "Base type", "\u03B3 value"],
+                                   tablefmt="rst"
+                                   ))
+
+                case "agent":
+                    if "agents" not in db:
+                        raise Exception(
+                            "You haven't created any agents yet!"
+                        )
+
+                    aname = input(
+                        "What agent would you like to look into?: "
+                    )
+
+                    ae = db["agents"][aname]
+
+                    if not ae:
+                        raise Exception(
+                            f"No agent named {aname}!"
+                        )
+
+                    ename = ae[1]
+
+                    print(tabulate([aname, ename],
+                                   headers=["Agent name", "Environment name"],
+                                   tablefmt="rst"
+                                   ))
 
                 case "agents":
                     if "agents" not in db:
@@ -228,7 +309,10 @@ def main():
                         ename = db["agents"][aname][1]
                         to_print.append([aname, ename])
 
-                    print(tabulate(to_print, headers=["Agent name", "Environment name"], tablefmt="rst"))
+                    print(tabulate(to_print,
+                                   headers=["Agent name", "Environment name"],
+                                   tablefmt="rst"
+                                   ))
 
                 case "probs":
                     if "envs" not in db:
@@ -237,17 +321,17 @@ def main():
                         )
 
                     ename = input(
-                        "Provide an environment name that you want to look at: "
+                        "For what environment would you like to display properties? Provide a name: "
                     )
 
                     eb = db["envs"].get(ename)
 
-                    if eb:
-                        Info.print_probabilities(eb[0])
-                    else:
+                    if not eb:
                         raise Exception(
                             f"No environment named '{ename}'!"
                         )
+
+                    Info.print_probabilities(eb[0])
 
         if args.delete:
             if os.path.exists("./dbdir"):

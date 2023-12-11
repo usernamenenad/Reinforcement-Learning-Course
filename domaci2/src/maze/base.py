@@ -84,13 +84,13 @@ class MazeGraph(MazeBase):
             {
                 GraphPosition(i): random_cell()
                 for i in range(self.__no_nodes)
-            }
+        }
 
         self.__connections: Dict[Position, Dict[Direction, Position]] = \
             {
                 node: {}
                 for node in self.__nodes
-            }
+        }
 
         self.__set_maze()
 
@@ -232,20 +232,21 @@ class MazeBoard(MazeBase):
 
         cells = [[random_cell() for _ in range(width)] for _ in range(height)]
 
-        self.__rows_no, self.__cols_no, cells = MazeBoard.__validate_cells(cells)
+        self.__rows_no, self.__cols_no, cells = MazeBoard.__validate_cells(
+            cells)
 
         self.__nodes: Dict[Position, Cell] = \
             {
                 BoardPosition((i, j)): cells[i][j]
                 for i in range(self.__rows_no)
                 for j in range(self.cols_no)
-            }
+        }
 
         self.__connections: Dict[Position, Dict[Direction, Position]] = \
             {
                 node: {}
                 for node in self.__nodes
-            }
+        }
 
         self.__set_maze()
 

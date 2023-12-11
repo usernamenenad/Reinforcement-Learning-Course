@@ -51,28 +51,26 @@ class MazeEnvironment:
         :param gamma: Discount factor.
         """
         self.__base = base
-        self.__states: list[Position] = \
-            [
-                node
-                for node in self.base.nodes
-                if self.base[node].is_steppable and not isinstance(self.__base[node], TeleportCell)
-            ]
+        self.__states: list[Position] = [
+            node
+            for node in self.base.nodes
+            if self.base[node].is_steppable and not isinstance(self.__base[node], TeleportCell)
+        ]
 
         # Setting probabilities -
-        self.__probabilities: Dict[tuple[Position, Action], Dict[Direction, float]] = {}
+        self.__probabilities: Dict[tuple[Position,
+                                         Action], Dict[Direction, float]] = dict()
         self.__set_probabilities()
 
-        self.__q_values: Dict[tuple[Position, Action], float] = \
-            {
-                (s, a): -10 * random() if not self.is_terminal(s) else 0
-                for s in self.__states
-                for a in self.get_actions()
-            }
+        self.__q_values: Dict[tuple[Position, Action], float] = {
+            (s, a): -10 * random() if not self.is_terminal(s) else 0
+            for s in self.__states
+            for a in self.get_actions()
+        }
 
-        self.__v_values: Dict[Position, float] = \
-            {
-                s: self.determine_v(s) for s in self.__states
-            }
+        self.__v_values: Dict[Position, float] = {
+            s: self.determine_v(s) for s in self.__states
+        }
 
         self.__gamma = gamma
 
@@ -106,17 +104,6 @@ class MazeEnvironment:
 
         return snext
 
-    # def validate_position(self, row: int, col: int):
-    #     """
-    #     A utility function that validates a position.
-    #     """
-    #     if row < 0 or row >= self.base.rows_no:
-    #         raise Exception("Invalid row position")
-    #     if col < 0 or col >= self.base.cols_no:
-    #         raise Exception("Invalid column position")
-    #     if not self.base[row, col].is_steppable:
-    #         raise Exception("Invalid position: unsteppable cell")
-
     def __set_probabilities(self):
         """
         Private method for initializing random probabilities.
@@ -126,7 +113,8 @@ class MazeEnvironment:
         for s in self.__states:
             for a in self.get_actions():
                 no_probs = len(self.base.get_directions(s))
-                probabilities = np.round(np.random.dirichlet(np.ones(no_probs), size=1)[0], 3).tolist()
+                probabilities = np.round(np.random.dirichlet(
+                    np.ones(no_probs), size=1)[0], 3).tolist()
                 self.__probabilities[(s, a)] = {}
                 for i, direction in enumerate(self.base.get_directions(s)):
                     self.__probabilities[(s, a)][direction] = probabilities[i]
@@ -142,7 +130,8 @@ class MazeEnvironment:
                     # q(s, a) = sum(p(s^+, r | s, a)(r + gamma * q(s^+, a^+)))
                     self.__q_values[(s, a)] = sum(
                         [
-                            new["Probability"] * (new["Reward"] + self.gamma * self.determine_v(new["New state"]))
+                            new["Probability"] * (new["Reward"] + self.gamma *
+                                                  self.determine_v(new["New state"]))
                             for new in news
                         ]
                     )
@@ -156,7 +145,8 @@ class MazeEnvironment:
 
         if direction not in self.get_directions():
             raise Exception(
-                f"Agent cannot move in direction {direction.name} in this environment!"
+                f"Agent cannot move in direction {
+                    direction.name} in this environment!"
             )
 
         return self.__base.compute_direction(state, direction)
@@ -184,7 +174,8 @@ class MazeEnvironment:
             q.append(
                 sum(
                     [
-                        self.__probabilities[(s, a)][direction] * self.__q_values[(s, a)]
+                        self.__probabilities[(s, a)][direction] *
+                        self.__q_values[(s, a)]
                         for direction in self.base.get_directions(s)
                     ]
                 )

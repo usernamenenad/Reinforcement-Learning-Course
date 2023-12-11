@@ -10,7 +10,8 @@ from .environment import *
 class Info:
     @staticmethod
     def __draw_board(board: MazeBoard, ax=None):
-        board_img = np.ones(shape=(board.rows_no, board.cols_no, 3), dtype=np.uint8)
+        board_img = np.ones(
+            shape=(board.rows_no, board.cols_no, 3), dtype=np.uint8)
 
         for i in range(board.rows_no):
             for j in range(board.cols_no):
@@ -99,7 +100,8 @@ class Info:
         for node in graph.nodes:
             cell = graph.nodes[node]
             if node in agent.env.states:
-                labels[node] = str(node.value) + f', {agent.env.v_values[node]:.1f}'
+                labels[node] = str(node.value) + \
+                    f', {agent.env.v_values[node]:.1f}'
             else:
                 if isinstance(cell, TeleportCell):
                     labels[node] = cell.to_teleport_to.position.value
