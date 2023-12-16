@@ -1,140 +1,95 @@
-from abc import ABC, abstractmethod
 from copy import copy
-from random import random
 
-from .utils import *
-
-
-class Agent(ABC):
-    """
-    An interface for a type of Blackjack player,
-    that can be a regular player or a dealer.
-    """
-
-    @property
-    def state(self) -> State:
-        return self.__state
-
-    @property
-    def experience(self):
-        return self.__experience
-
-    @experience.setter
-    def experience(self, experience: Experience):
-        self.__experience = experience
-
-    def __init__(self, state: State):
-        self.__state = state
-        self.__experience: Experience = Experience()
-
-    def update_total(self, card: Card):
-        match card.number:
-
-            case CardNumber.ACE:
-                if self.__state.total + card.number.value <= 21:
-                    self.__state.total += 11
-                    self.__state.has_ace = True
-                else:
-                    self.__state.total += 1
-
-            case _:
-                self.__state.total += card.number.value
-                if self.__state.total > 21:
-                    if self.__state.has_ace:
-                        self.__state.total -= 10
-                        self.__state.has_ace = False
-
-    @abstractmethod
-    def policy(self) -> Action:
-        pass
-
-
-class Dealer(Agent):
-    """
-    A dealer agent.
-    """
-
-    @property
-    def state(self) -> State:
-        return super().state
-
-    def __init__(self, state: DealerState = None):
-        super().__init__(state if state else DealerState())
-
-    def policy(self) -> Action:
-        return Action.HIT if self.state.total < 17 else Action.HOLD
-
-
-class Player(Agent):
-    """
-    A player agent.
-    """
-
-    @property
-    def state(self) -> State:
-        return super().state
-
-    def __init__(self, state: PlayerState = None):
-        super().__init__(state if state else PlayerState())
-
-    def policy(self) -> Action:
-        return Action.HIT if random() < 0.5 else Action.HOLD
+from .agents import *
 
 
 class Game:
+    """
+    A class representing blackjack game.
+    """
 
     @property
-    def dealer(self) -> Dealer:
-        return self.__dealer
-
-    @property
-    def players(self) -> list[Player]:
+    def players(self) -> list[Agent]:
         return self.__players
 
     @property
     def deck(self) -> CardDeck:
         return self.__deck
 
-    def __init__(self, dealer: Dealer = None, players: list[Player] = None, deck: CardDeck = None):
+    def __init__(self, players: list[Agent] = None, deck: CardDeck = None):
         self.__players = players if players else [Player() for _ in range(2)]
-        self.__dealer = dealer if dealer else Dealer()
         self.__deck = deck if deck else CardDeck()
 
-    def __initialize_game(self):
-        self.__dealer.update_total(self.__deck.draw())
-        dealer_known = self.__dealer.state.total
-        self.__dealer.update_total(self.__deck.draw())
+    def __initialize_round(self, players: list[Agent], round: int) -> None:
+        """
+        A blackjack game initializer. One card is given to
+        each player and one card is commonly drawn, meaning that
+        all players get the same card.
+        """
+
+        common_card = self.__deck.draw()
 
         for player in self.__players:
-            player.state.dealer_total = dealer_known
-            for card in [self.__deck.draw() for _ in range(2)]:
-                player.update_total(card)
+            player_card = self.__deck.draw()
+            player.update_total(player_card)
+            player.update_total(common_card)
 
-    def play(self, gamma: float = 1.0):
-        self.__initialize_game()
+            if player.state.total > 21:
+                # print(f"{player.name} busted while initialization! It will be excluded from the game.")
+                player.log_experience(round, [copy(player.state), Action.HIT, -1.0])
+                players.remove(player)
 
-        for player in copy(self.__players) + [self.__dealer]:
+    def __play_round(self, players: list[Agent], round: int) -> list[Agent]:
+        """
+        A private game method which simulates one round.
+        Returns this round's winners.
+        """
+        max_total = 0
+
+        for player in players:
             while True:
                 action = player.policy()
-                player.experience += [copy(player.state), action, 0.0]
+                player.log_experience(round, [copy(player.state), action, 0.0])
+
                 if action == Action.HOLD:
+                    # Determine if this is the new max_total.
+                    max_total = player.state.total if player.state.total > max_total else max_total
                     break
+
                 card = self.__deck.draw()
                 player.update_total(card)
 
-        self.__dealer.state.total = 0 if self.__dealer.state.total > 21 else self.__dealer.state.total
+                if player.state.total > 21:
+                    # Player busts, and we "reset" its score.
+                    # print(f"{player.name} busted!")
+                    player.state.total = 0
+                    break
 
-        for player in self.__players:
-            player.state.total = -1 if player.state.total > 21 else player.state.total
-            if player.state.total < self.__dealer.state.total:
-                reward = -1
-                print(f"Agent {player} lost!")
-            elif player.state.total == self.__dealer.state.total:
-                reward = 0
-                print(f"Agent {player} drew!")
-            else:
-                reward = 1
-                print(f"Agent {player} won!")
+        return [player for player in players if player.state.total == max_total]
 
-            player.experience.compute_experience(reward, gamma)
-            print(player.experience.experience)
+    def play(self, gamma: float = 1.0):
+        """
+        A gameplay method that simulates one blackjack game.
+        """
+        for round in range(len(self.__players)):
+            players = copy(self.__players)
+            players[round], players[0] = players[0], players[round]
+            self.__initialize_round(players, round)
+
+            # Play the round and determine which players won the round.
+            winners = self.__play_round(players, round)
+
+            # If there's only one player who won the round,
+            # it's the only player that will get a positive reward.
+            if len(winners) == 1:
+                winners[0].build_gains(round, 1.0, gamma)
+
+            # If there are multiple winners, they all get a neutral
+            # reward 0, which is already default.
+            # Rest of the players get a negative reward.
+            for player in players:
+                if player not in winners:
+                    player.build_gains(round, -1.0, gamma)
+
+            for player in self.__players:
+                player.reset()

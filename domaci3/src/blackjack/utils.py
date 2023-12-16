@@ -1,7 +1,9 @@
 from abc import ABC
-from enum import Enum, StrEnum
 from dataclasses import dataclass
+from enum import Enum, StrEnum
 from random import shuffle
+
+from tabulate import tabulate
 
 
 class CardSuit(StrEnum):
@@ -55,8 +57,8 @@ class Card():
 class CardDeck():
 
     def __init__(self, no_sets=5):
-        self.no_sets = no_sets
-        self.deck: list[Card] = list()
+        self.__no_sets = no_sets
+        self.__deck: list[Card] = list()
         self.__reshuffle()
 
     def __repr__(self):
@@ -70,22 +72,26 @@ class CardDeck():
         """
         Used for (RE)creating and SHUFFLING the deck.
         """
-        self.deck = self.no_sets * [Card(number=n, suit=s)
-                                    for n in iter(CardNumber)
-                                    for s in iter(CardSuit)]
+        self.__deck = self.__no_sets * [Card(number=n, suit=s)
+                                        for n in iter(CardNumber)
+                                        for s in iter(CardSuit)]
 
-        shuffle(self.deck)
+        shuffle(self.__deck)
 
     def draw(self) -> Card:
-        if not self.deck:
+        if not self.__deck:
             self.__reshuffle()
-        return self.deck.pop(0)
+        return self.__deck.pop(0)
 
 
 @dataclass
 class State(ABC):
     total: int = 0
     has_ace: bool = False if total != 11 else True
+
+    def reset(self):
+        self.total = 0
+        self.has_ace = False
 
 
 @dataclass
@@ -97,6 +103,10 @@ class DealerState(State):
 class PlayerState(State):
     dealer_total: int = 0
 
+    def reset(self):
+        super().reset()
+        self.dealer_total = 0
+
 
 class Action(Enum):
     HIT = 0
@@ -105,19 +115,35 @@ class Action(Enum):
 
 class Experience():
 
+    @property
+    def experience(self):
+        return self.__experience
+
     def __init__(self):
-        self.experience: list[list[State, Action, float]] = list()
+        self.__experience: list[list[State, Action, float]] = list()
 
-    def __add__(self, exp: list[State, Action, float]):
-        self.experience.append(exp)
-        return self
+    def __repr__(self):
+        to_print = list()
+        for exp in self.__experience:
+            to_print.append(
+                {
+                    "State": exp[0],
+                    "Action": exp[1],
+                    "Gain": exp[2]
+                }
+            )
 
-    def compute_experience(self, result: float, gamma: float = 1.0):
+        return tabulate(to_print, headers="keys", tablefmt="rst") + "\r\n"
+
+    def log(self, exp: [State | Action | float]) -> None:
+        self.__experience.append(exp)
+
+    def build(self, result: float, gamma: float = 1.0) -> None:
         self.experience[-1][2] = result
 
         for i, exp in enumerate(self.experience):
-            gain = 0
-            discount = 1
+            gain = 0.0
+            discount = 1.0
             for jexp in self.experience[i:]:
                 gain += discount * jexp[2]
                 discount *= gamma
