@@ -1,5 +1,5 @@
 from abc import ABC
-from dataclasses import dataclass
+from dataclasses import dataclass, astuple
 from enum import Enum, StrEnum
 from random import shuffle
 
@@ -103,6 +103,9 @@ class DealerState(State):
 class PlayerState(State):
     dealer_total: int = 0
 
+    def __hash__(self):
+        return hash(astuple(self))
+
     def reset(self):
         super().reset()
         self.dealer_total = 0
@@ -121,6 +124,9 @@ class Experience():
 
     def __init__(self):
         self.__experience: list[list[State, Action, float]] = list()
+
+    def __iter__(self):
+        return iter(self.__experience)
 
     def __repr__(self):
         to_print = list()
@@ -148,3 +154,6 @@ class Experience():
                 gain += discount * jexp[2]
                 discount *= gamma
             exp[2] = gain
+
+    def clear(self):
+        self.__experience.clear()

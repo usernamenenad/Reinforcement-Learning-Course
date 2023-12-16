@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 from .utils import *
 from random import random
 

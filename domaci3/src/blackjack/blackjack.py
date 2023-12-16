@@ -35,6 +35,7 @@ class Game:
             player.update_total(common_card)
 
             if player.state.total > 21:
+                player.state.total = 0
                 # print(f"{player.name} busted while initialization! It will be excluded from the game.")
                 player.log_experience(round, [copy(player.state), Action.HIT, -1.0])
                 players.remove(player)
