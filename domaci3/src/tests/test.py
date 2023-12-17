@@ -29,17 +29,28 @@ class TestBlackjack(unittest.TestCase):
         players = [Player() for _ in range(no_players)]
         game = Game(players)
 
-        game.play(gamma=0.9)
-        Info.draw_experience(game, 1)
-        Info.log_experiences(game)
+        game.play(gamma=0.9, q=Q())
+        # Info.draw_experience(game, round=1)
+        # Info.log_experiences(game)
 
     def test_incr_monte_carlo(self):
         no_players = 2
         players = [Player() for _ in range(no_players)]
         game = Game(players)
 
-        imc = IncrMonteCarlo(gamma=0.9)
-        q: Q = imc.run(game)
+        q = Q()
+        # qq = deepcopy(q.q)
+
+        imc = IncrMonteCarlo(q=q, gamma=0.9, iterations=20000)
+        imc.run(game)
+
+        # for key in q.q:
+        #     if q.q[key] != qq[key]:
+        #         print(f"State and Action: {key}")
+        #         print(f"Before: {qq[key]}, after: {q.q[key]}")
+        #         print("--------------------------------------")
+
+        print(q)
 
 
 def main() -> None:

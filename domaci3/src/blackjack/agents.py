@@ -31,15 +31,15 @@ class Agent(ABC):
         return self.__name
 
     def update_total(self, card: Card):
-        match card.number:
+        match card.value:
             case CardNumber.ACE:
-                if self.__state.total + card.number.value <= 21 and not self.__state.has_ace:
+                if self.__state.total + card.value <= 21 and not self.__state.has_ace:
                     self.__state.total += 11
                     self.__state.has_ace = True
                 else:
                     self.__state.total += 1
             case _:
-                self.__state.total += card.number.value
+                self.__state.total += card.value
                 if self.__state.total > 21:
                     if self.__state.has_ace:
                         self.__state.total -= 10
@@ -57,7 +57,7 @@ class Agent(ABC):
         self.__state.reset()
 
     @abstractmethod
-    def policy(self) -> Action:
+    def policy(self, q: Q, state: State) -> Action:
         pass
 
 
@@ -74,7 +74,7 @@ class Dealer(Agent):
         name = name if name else "Dealer"
         super().__init__(state if state else DealerState(), name)
 
-    def policy(self) -> Action:
+    def policy(self, q: Q, state: State) -> Action:
         return Action.HIT if self.state.total < 17 else Action.HOLD
 
 
@@ -94,5 +94,8 @@ class Player(Agent):
         Player.__no_players += 1
         super().__init__(state if state else PlayerState(), name)
 
-    def policy(self) -> Action:
-        return Action.HIT if random() < 0.5 else Action.HOLD
+    def policy(self, q: Q, state: PlayerState) -> Action:
+        """
+        Greedy policy.
+        """
+        return Action.HIT if q[(state, Action.HIT)] > q[(state, Action.HOLD)] else Action.HOLD

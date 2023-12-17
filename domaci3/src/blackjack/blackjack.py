@@ -1,4 +1,4 @@
-from copy import copy
+from copy import copy, deepcopy
 
 from .agents import *
 
@@ -34,13 +34,7 @@ class Game:
             player.update_total(player_card)
             player.update_total(common_card)
 
-            if player.state.total > 21:
-                player.state.total = 0
-                # print(f"{player.name} busted while initialization! It will be excluded from the game.")
-                player.log_experience(round, [copy(player.state), Action.HIT, -1.0])
-                players.remove(player)
-
-    def __play_round(self, players: list[Agent], round: int) -> list[Agent]:
+    def __play_round(self, players: list[Agent], q: Q, round: int) -> list[Agent]:
         """
         A private game method which simulates one round.
         Returns this round's winners.
@@ -49,8 +43,8 @@ class Game:
 
         for player in players:
             while True:
-                action = player.policy()
-                player.log_experience(round, [copy(player.state), action, 0.0])
+                action = player.policy(q, player.state)
+                player.log_experience(round, [deepcopy(player.state), action, 0.0])
 
                 if action == Action.HOLD:
                     # Determine if this is the new max_total.
@@ -68,7 +62,7 @@ class Game:
 
         return [player for player in players if player.state.total == max_total]
 
-    def play(self, gamma: float = 1.0):
+    def play(self, q: Q, gamma: float = 1.0):
         """
         A gameplay method that simulates one blackjack game.
         """
@@ -78,7 +72,7 @@ class Game:
             self.__initialize_round(players, round)
 
             # Play the round and determine which players won the round.
-            winners = self.__play_round(players, round)
+            winners = self.__play_round(players, q, round)
 
             # If there's only one player who won the round,
             # it's the only player that will get a positive reward.

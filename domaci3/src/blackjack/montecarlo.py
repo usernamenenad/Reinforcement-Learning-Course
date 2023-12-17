@@ -3,32 +3,6 @@ from dataclasses import field
 from .blackjack import *
 
 
-@dataclass
-class Q:
-    """
-    Class to represent Q estimates.
-    """
-
-    def __init__(self):
-        all_states = [PlayerState(total=total, has_ace=has_ace, dealer_total=0)
-                      for total in range(0, 22)
-                      for has_ace in [False, True]]
-
-        all_actions = [Action.HOLD, Action.HIT]
-
-        self.q = {
-            (s, a): random()
-            for s in all_states
-            for a in all_actions
-        }
-
-    def __getitem__(self, key: tuple[PlayerState, Action]) -> float:
-        return self.q[key]
-
-    def __setitem__(self, key: tuple[PlayerState, Action], gain: float):
-        self.q[key] = gain
-
-
 class MonteCarlo(ABC):
     """
     An interface for all Monte Carlo algorithms.
@@ -47,12 +21,12 @@ class MonteCarlo(ABC):
 
 class IncrMonteCarlo(MonteCarlo):
 
-    def __init__(self, q: Q = None, gamma: float = 1.0, alpha: float = 0.5, iterations: int = 1000):
+    def __init__(self, q: Q = None, gamma: float = 1.0, alpha: float = 0.05, iterations: int = 1000):
         super().__init__(q if q else Q(), gamma, alpha, iterations)
 
     def run(self, game: Game) -> Q:
         for _ in range(self.iterations):
-            game.play(self.gamma)
+            game.play(self.q, self.gamma)
 
             # What (state, action) pairs showed up in this game.
             # We will use the `every occurrence` approach, meaning that

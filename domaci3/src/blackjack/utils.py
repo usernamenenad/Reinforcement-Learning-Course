@@ -1,7 +1,7 @@
 from abc import ABC
 from dataclasses import dataclass, astuple, field
 from enum import Enum, StrEnum
-from random import shuffle
+from random import shuffle, random
 
 from tabulate import tabulate
 
@@ -50,6 +50,12 @@ class Card():
     number: CardNumber
     suit: CardSuit
 
+    @property
+    def value(self):
+        if self.number == CardNumber.JACK or self.number == CardNumber.DAME or self.number == CardNumber.KING:
+            return 10
+        return self.number.value
+
     def __repr__(self):
         return f"{repr(self.number)}{repr(self.suit)}"
 
@@ -85,7 +91,7 @@ class CardDeck():
 
 
 @dataclass
-class State(ABC):
+class State:
     total: int = 0
     has_ace: bool = False
 
@@ -101,14 +107,12 @@ class DealerState(State):
 
 @dataclass
 class PlayerState(State):
-    dealer_total: int = 0
 
     def __hash__(self):
         return hash(astuple(self))
 
     def reset(self):
         super().reset()
-        self.dealer_total = 0
 
 
 class Action(Enum):
@@ -157,3 +161,42 @@ class Experience():
 
     def clear(self):
         self.__experience.clear()
+
+
+@dataclass
+class Q:
+    """
+    Class to represent Q estimates.
+    """
+
+    def __init__(self):
+        all_states = [PlayerState(total=total, has_ace=has_ace)
+                      for total in range(2, 22)
+                      for has_ace in [False, True]]
+
+        all_actions = [Action.HOLD, Action.HIT]
+
+        self.q = {
+            (s, a): random()
+            for s in all_states
+            for a in all_actions
+        }
+
+    def __getitem__(self, key: tuple[PlayerState, Action]) -> float:
+        return self.q[key]
+
+    def __setitem__(self, key: tuple[PlayerState, Action], gain: float):
+        self.q[key] = gain
+
+    def __repr__(self):
+        to_repr = []
+        for s, a in self.q:
+            to_repr.append(
+                {
+                    "State": s,
+                    "Action": a,
+                    "Gain": self.q[(s, a)]
+                }
+            )
+
+        return tabulate(to_repr, headers="keys", tablefmt="rst")
