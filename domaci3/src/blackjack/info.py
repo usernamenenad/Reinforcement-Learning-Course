@@ -59,14 +59,10 @@ class Info:
                                          font_size=20,
                                          ax=axes[i])
 
-            # nx.draw(g,
-            #         pos=pos,
-            #         labels=node_labels,
-            #         node_size=2000,
-            #         ax=axes[i])
-
             axes[i].set_title(f"{player.name}'s experience")
             # axes[i].set_axis_off()
+
+        plt.show()
 
     @staticmethod
     def log_experiences(game: Game):

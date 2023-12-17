@@ -33,7 +33,7 @@ class Agent(ABC):
     def update_total(self, card: Card):
         match card.number:
             case CardNumber.ACE:
-                if self.__state.total + card.number.value <= 21:
+                if self.__state.total + card.number.value <= 21 and not self.__state.has_ace:
                     self.__state.total += 11
                     self.__state.has_ace = True
                 else:

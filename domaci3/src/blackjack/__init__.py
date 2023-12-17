@@ -1,1 +1,2 @@
-from .blackjack import *
+from .montecarlo import *
+from .info import *

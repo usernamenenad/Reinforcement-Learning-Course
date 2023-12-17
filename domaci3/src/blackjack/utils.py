@@ -1,5 +1,5 @@
 from abc import ABC
-from dataclasses import dataclass, astuple
+from dataclasses import dataclass, astuple, field
 from enum import Enum, StrEnum
 from random import shuffle
 
@@ -63,7 +63,7 @@ class CardDeck():
 
     def __repr__(self):
         s = str()
-        for card in self.deck:
+        for card in self.__deck:
             s += repr(card) + " "
 
         return s
@@ -87,7 +87,7 @@ class CardDeck():
 @dataclass
 class State(ABC):
     total: int = 0
-    has_ace: bool = False if total != 11 else True
+    has_ace: bool = False
 
     def reset(self):
         self.total = 0
@@ -123,7 +123,7 @@ class Experience():
         return self.__experience
 
     def __init__(self):
-        self.__experience: list[list[State, Action, float]] = list()
+        self.__experience: list[list[State | Action | float]] = list()
 
     def __iter__(self):
         return iter(self.__experience)
