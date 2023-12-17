@@ -8,3 +8,6 @@
 __pycache__
 dbdir
 Tekstovi
+
+poetry.lock
+pyproject.toml

@@ -57,7 +57,7 @@ class BanditsEnvironment:
     def take_action(self, a: int) -> float:
         """
         Select bandit `a` and pull its leaver. 
-        
+
         If the selected agent is valid, return the obtained reward.
         Otherwise, return negative penalty.
         """
@@ -134,7 +134,8 @@ class RewardPlot(Plot):
              CHANGE_AT: List[int] = None,
              old_bandit_mean: List[List[float]] = None) -> None:
         plt.scatter(range(len(env.bandits)), self.q, marker='.')
-        plt.scatter(range(len(env.bandits)), [env.bandits[i].mean for i in range(len(env.bandits))], marker='x')
+        plt.scatter(range(len(env.bandits)), [
+                    env.bandits[i].mean for i in range(len(env.bandits))], marker='x')
 
         plt.show()
 
@@ -150,7 +151,8 @@ class RewardPlot(Plot):
             for i, old_mean in enumerate(old_bandit_mean):
                 old_max_r = max(old_mean)
                 plt.plot(np.cumsum(old_max_r * np.ones(len(g))))
-                plt.axvline(x=CHANGE_AT[i], ymin=0.05, ymax=0.95, linestyle='dashed', color='red', label='_nolegend_')
+                plt.axvline(x=CHANGE_AT[i], ymin=0.05, ymax=0.95,
+                            linestyle='dashed', color='red', label='_nolegend_')
 
                 legend.append(f'Maximum reward before {i + 1}th change')
 
@@ -193,10 +195,13 @@ class ConvergencePlot(Plot):
                                  color=colors[k])
                     start = CHANGE_AT[j]
             plt.plot(range(CHANGE_AT[-1] if CHANGE_AT else 0, self.ATTEMPTS_NO),
-                     bandit.mean * np.ones(self.ATTEMPTS_NO - CHANGE_AT[-1] if CHANGE_AT else self.ATTEMPTS_NO),
+                     bandit.mean *
+                     np.ones(self.ATTEMPTS_NO -
+                             CHANGE_AT[-1] if CHANGE_AT else self.ATTEMPTS_NO),
                      linestyle='--', label='_nolegend_',
                      color=colors[i])
-            plt.scatter([i for i in range(self.ATTEMPTS_NO + 1)], self.q_evol[i], marker='.', s=10, color=colors[i])
+            plt.scatter([i for i in range(self.ATTEMPTS_NO + 1)],
+                        self.q_evol[i], marker='.', s=10, color=colors[i])
             legend.append(f'Q over time for bandit {i}')
 
         plt.legend(legend, loc='best')
@@ -251,7 +256,8 @@ class System:
 
         if not self.env.stationary:
             plotter = RewardPlot(rewards=rewards, q=q)
-            plotter.plot(env=self.env, CHANGE_AT=CHANGE_AT, old_bandit_mean=old_bandit_mean)
+            plotter.plot(env=self.env, CHANGE_AT=CHANGE_AT,
+                         old_bandit_mean=old_bandit_mean)
         else:
             plotter = RewardPlot(rewards=rewards, q=q)
             plotter.plot(env=self.env)
