@@ -31,8 +31,10 @@ class Agent(ABC):
         return self.__name
 
     def update_total(self, card: Card):
-        match card.value:
+        match card.number:
             case CardNumber.ACE:
+                # If we get two aces in a row, both of them can be counted as
+                # 1. This is a little OP and will probably need revision.
                 if self.__state.total + card.value <= 21 and not self.__state.has_ace:
                     self.__state.total += 11
                     self.__state.has_ace = True

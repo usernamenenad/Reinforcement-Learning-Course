@@ -171,7 +171,7 @@ class Q:
 
     def __init__(self):
         all_states = [PlayerState(total=total, has_ace=has_ace)
-                      for total in range(2, 22)
+                      for total in range(4, 22)
                       for has_ace in [False, True]]
 
         all_actions = [Action.HOLD, Action.HIT]
