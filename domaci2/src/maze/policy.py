@@ -11,6 +11,9 @@ class Policy(ABC):
 
     defined_policies: Dict[str, set[str]] = {}
 
+    def act(self, s: Position, env: MazeEnvironment, actions: list[Action]) -> Action:
+        pass
+
 
 class GreedyPolicy(Policy, ABC):
     """
@@ -18,7 +21,7 @@ class GreedyPolicy(Policy, ABC):
     """
 
     @abstractmethod
-    def take_policy(self, s: Position, env: MazeEnvironment, actions: list[Action]) -> Action:
+    def act(self, s: Position, env: MazeEnvironment, actions: list[Action]) -> Action:
         pass
 
 
@@ -27,7 +30,7 @@ class GreedyPolicyQ(GreedyPolicy):
     Inherited from GreedyPolicy - greedy policy using purely Q values.
     """
 
-    def take_policy(self, s: Position, env: MazeEnvironment, actions: list[Action]) -> Action:
+    def act(self, s: Position, env: MazeEnvironment, actions: list[Action]) -> Action:
         qpa: list[tuple[float, Action]] = list()
         for a in actions:
             qpa.append((env.q_values[(s, a)], a))
@@ -40,7 +43,7 @@ class GreedyPolicyV(GreedyPolicy):
     Inherited from GreedyPolicy - greedy policy using purely V values.
     """
 
-    def take_policy(self, s: Position, env: MazeEnvironment, actions: list[Action]) -> Action:
+    def act(self, s: Position, env: MazeEnvironment, actions: list[Action]) -> Action:
         vpa: list[tuple[float, Action]] = list()
         for a in actions:
             news = env(s, a)

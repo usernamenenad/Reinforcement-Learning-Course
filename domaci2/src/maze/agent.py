@@ -33,9 +33,6 @@ class Agent:
         sa: Dict[Position, Action] = {}
         for s in self.env.states:
             if not self.env.is_terminal(s):
-                sa[s] = policy.take_policy(s, self.env, self.actions)
+                sa[s] = policy.act(s, self.env, self.actions)
 
         return sa
-
-    def take_policy(self, s: tuple[int, int], policy: Policy) -> Action:
-        return policy.take_policy(s, self.env, self.actions)

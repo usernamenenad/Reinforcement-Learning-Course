@@ -4,30 +4,6 @@ from typing import Dict, Iterable
 from .utils import *
 
 
-class MazeBase(ABC):
-    """
-    Base class for maze.
-    """
-
-    @property
-    @abstractmethod
-    def nodes(self):
-        pass
-
-    @property
-    @abstractmethod
-    def connections(self):
-        pass
-
-    @abstractmethod
-    def __getitem__(self, **kwargs) -> Cell:
-        pass
-
-    @abstractmethod
-    def get_directions(self, s: Position) -> list[Direction]:
-        pass
-
-
 class GraphPosition(Position):
     """
     Inherited from Position class - models a graph node.
@@ -52,6 +28,68 @@ class GraphPosition(Position):
 
     def __hash__(self):
         return hash(self.__value)
+
+
+class BoardPosition(Position):
+    """
+    Inherited from Position class - models a board square.
+    """
+
+    @property
+    def value(self) -> tuple[int, int]:
+        return self.__value
+
+    def __init__(self, value: tuple[int, int]):
+        self.__value = value
+
+    def __eq__(self, other):
+        if isinstance(other, tuple):
+            return self.__value == other
+        elif isinstance(other, BoardPosition):
+            return self.__value == other.__value
+
+        raise Exception(
+            f"Cannot use '==' in context of {other.__class__.__name__}"
+        )
+
+    def __hash__(self):
+        return hash(self.__value)
+
+    def __getitem__(self, key: int):
+        if key == 0 or key == 1:
+            return self.__value[key]
+
+        raise Exception(
+            f"No position {key} in this base!"
+        )
+
+
+class MazeBase(ABC):
+    """
+    Base class for maze.
+    """
+
+    @property
+    @abstractmethod
+    def nodes(self):
+        pass
+
+    @property
+    @abstractmethod
+    def connections(self):
+        pass
+
+    @abstractmethod
+    def __getitem__(self, **kwargs) -> Cell:
+        pass
+
+    @abstractmethod
+    def compute_direction(self, node: Position, direction: Direction) -> Position:
+        pass
+
+    @abstractmethod
+    def get_directions(self, s: Position) -> list[Direction]:
+        pass
 
 
 class MazeGraph(MazeBase):
@@ -84,24 +122,15 @@ class MazeGraph(MazeBase):
             {
                 GraphPosition(i): random_cell()
                 for i in range(self.__no_nodes)
-        }
+            }
 
         self.__connections: Dict[Position, Dict[Direction, Position]] = \
             {
                 node: {}
                 for node in self.__nodes
-        }
+            }
 
         self.__set_maze()
-
-    def __call__(self, position: int) -> Position:
-        for node in self.__nodes:
-            if node == position:
-                return node
-
-        raise Exception(
-            f"No position {position} in this base!"
-        )
 
     def __getitem__(self, key: int | Position) -> Cell:
         for node in self.__nodes:
@@ -163,40 +192,6 @@ class MazeGraph(MazeBase):
         return list(self.__connections[node].keys())
 
 
-class BoardPosition(Position):
-    """
-    Inherited from Position class - models a board square.
-    """
-
-    @property
-    def value(self) -> tuple[int, int]:
-        return self.__value
-
-    def __init__(self, value: tuple[int, int]):
-        self.__value = value
-
-    def __eq__(self, other):
-        if isinstance(other, tuple):
-            return self.__value == other
-        elif isinstance(other, BoardPosition):
-            return self.__value == other.__value
-
-        raise Exception(
-            f"Cannot use '==' in context of {other.__class__.__name__}"
-        )
-
-    def __hash__(self):
-        return hash(self.__value)
-
-    def __getitem__(self, key: int):
-        if key == 0 or key == 1:
-            return self.__value[key]
-
-        raise Exception(
-            f"No position {key} in this base!"
-        )
-
-
 class MazeBoard(MazeBase):
     """
     Inherited from MazeBase class - models a board.
@@ -240,24 +235,15 @@ class MazeBoard(MazeBase):
                 BoardPosition((i, j)): cells[i][j]
                 for i in range(self.__rows_no)
                 for j in range(self.cols_no)
-        }
+            }
 
         self.__connections: Dict[Position, Dict[Direction, Position]] = \
             {
                 node: {}
                 for node in self.__nodes
-        }
+            }
 
         self.__set_maze()
-
-    def __call__(self, position: tuple[int, int]) -> Position:
-        for node in self.__nodes:
-            if node == position:
-                return node
-
-        raise Exception(
-            f"No position {position} in this base!"
-        )
 
     def __getitem__(self, key: tuple[int, int]) -> Cell:
         for node in self.__nodes:

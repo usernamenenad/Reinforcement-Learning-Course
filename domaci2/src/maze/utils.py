@@ -72,7 +72,7 @@ class RegularCell(Cell):
         return (255, 255, 255) if self.reward == -1 else (255, 0, 0)
 
     def __init__(self, reward: float):
-        self.__position: Position = None
+        self.__position: Position = Position()
         self.__reward: float = reward
 
 
@@ -105,7 +105,7 @@ class TerminalCell(Cell):
         return True
 
     def __init__(self, reward: float):
-        self.__position: Position = None
+        self.__position: Position = Position()
         self.__reward: float = reward
 
 
@@ -155,8 +155,8 @@ class TeleportCell(Cell):
         return self.to_teleport_to.has_value
 
     def __init__(self):
-        self.__position: Position = None
-        self.__to_teleport_to: Cell = None
+        self.__position: Position = Position()
+        self.__to_teleport_to: Cell = Cell()
 
 
 class WallCell(Cell):
@@ -191,7 +191,7 @@ class WallCell(Cell):
         return False
 
     def __init__(self):
-        self.__position: Position = None
+        self.__position: Position = Position()
         self.__reward: float = 0
 
 
@@ -217,4 +217,4 @@ class Action(Enum):
 
     @staticmethod
     def get_all_actions():
-        return [Action.ACTION_A1, Action.ACTION_A2, Action.ACTION_A4, Action.ACTION_A3]
+        return [Action.ACTION_A1, Action.ACTION_A2, Action.ACTION_A3, Action.ACTION_A4]

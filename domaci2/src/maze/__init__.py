@@ -1,1 +1,1 @@
-from .maze import *
+from .agent import *

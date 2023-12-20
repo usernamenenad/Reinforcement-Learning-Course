@@ -1,5 +1,6 @@
 from copy import deepcopy
 from random import random
+from typing import Any
 
 import numpy as np
 
@@ -57,9 +58,8 @@ class MazeEnvironment:
             if self.base[node].is_steppable and not isinstance(self.__base[node], TeleportCell)
         ]
 
-        # Setting probabilities -
-        self.__probabilities: Dict[tuple[Position,
-                                         Action], Dict[Direction, float]] = dict()
+        # Setting probabilities
+        self.__probabilities: Dict[tuple[Position, Action], Dict[Direction, float]] = dict()
         self.__set_probabilities()
 
         self.__q_values: Dict[tuple[Position, Action], float] = {
@@ -74,15 +74,17 @@ class MazeEnvironment:
 
         self.__gamma = gamma
 
-    def __call__(self, state, action: Action):
+    def __call__(self, state: Position | Any, action: Action) -> list[dict[str, Any]]:
         """
         Makes possible for environment class to act as a Markov Decision process -
         for a given state and action, it will return new states and rewards.
         """
-        snext = list()
+        next_states = list()
 
         if not isinstance(state, Position):
-            state = self.base(state)
+            for node in self.base.nodes:
+                if node == state:
+                    state = node
 
         for direction in self.base.get_directions(state):
             new_state = self.compute_direction(state, direction)
@@ -92,7 +94,7 @@ class MazeEnvironment:
                 new_state = new_cell.to_teleport_to.position
                 new_cell = new_cell.to_teleport_to
 
-            snext.append(
+            next_states.append(
                 {
                     "Direction": direction,
                     "New state": new_state,
@@ -102,7 +104,7 @@ class MazeEnvironment:
                 }
             )
 
-        return snext
+        return next_states
 
     def __set_probabilities(self):
         """
@@ -145,8 +147,7 @@ class MazeEnvironment:
 
         if direction not in self.get_directions():
             raise Exception(
-                f"Agent cannot move in direction {
-                    direction.name} in this environment!"
+                f"Agent cannot move in direction {direction.name} in this environment!"
             )
 
         return self.__base.compute_direction(state, direction)

@@ -1,3 +1,4 @@
-import maze
+from tests import main
 
-maze.main()
+if __name__ == '__main__':
+    main()
