@@ -111,9 +111,6 @@ class PlayerState(State):
     def __hash__(self):
         return hash(astuple(self))
 
-    def reset(self):
-        super().reset()
-
 
 class Action(Enum):
     HIT = 0
@@ -123,10 +120,14 @@ class Action(Enum):
 class Experience():
 
     @property
-    def experience(self):
+    def experience(self) -> list[list[State | Action | float]]:
         return self.__experience
 
     def __init__(self):
+        """
+        Experiences will be represented as list of (State, Action, float) pairs.
+        Every index of the list represents a round, i.e. 0th round - index 0 etc.
+        """
         self.__experience: list[list[State | Action | float]] = list()
 
     def __iter__(self):
@@ -146,9 +147,15 @@ class Experience():
         return tabulate(to_print, headers="keys", tablefmt="rst") + "\r\n"
 
     def log(self, exp: [State | Action | float]) -> None:
+        """
+        Used for adding new (State, Action, Gain) pair to the experience.
+        """
         self.__experience.append(exp)
 
     def build(self, result: float, gamma: float = 1.0) -> None:
+        """
+        Used for "building gains"; determining the gains starting from every state.
+        """
         self.experience[-1][2] = result
 
         for i, exp in enumerate(self.experience):
@@ -166,23 +173,31 @@ class Experience():
 @dataclass
 class Q:
     """
-    Class to represent Q estimates.
+    Class for representing Q estimates.
     """
 
     def __init__(self):
-        all_states = [PlayerState(total=total, has_ace=has_ace)
-                      for total in range(4, 22)
-                      for has_ace in [False, True]]
 
-        all_actions = [Action.HOLD, Action.HIT]
+        self.all_states: list[PlayerState] = list()
+        for total in range(4, 22):
+            if total not in range(4, 12):
+                self.all_states.append(PlayerState(total=total, has_ace=False))
+                self.all_states.append(PlayerState(total=total, has_ace=True))
+                continue
+            self.all_states.append(PlayerState(total=total, has_ace=False))
+            
+        self.all_actions: list[Action] = [Action.HOLD, Action.HIT]
 
-        self.q = {
+        self.q: dict[tuple[PlayerState, Action], float] = {
             (s, a): random()
-            for s in all_states
-            for a in all_actions
+            for s in self.all_states
+            for a in self.all_actions
         }
 
     def __getitem__(self, key: tuple[PlayerState, Action]) -> float:
+        """
+        Returns the reward gotten when ending up in given state and taking the given action.
+        """
         return self.q[key]
 
     def __setitem__(self, key: tuple[PlayerState, Action], gain: float):

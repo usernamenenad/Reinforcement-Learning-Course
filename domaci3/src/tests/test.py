@@ -39,18 +39,25 @@ class TestBlackjack(unittest.TestCase):
         game = Game(players)
 
         q = Q()
-        # qq = deepcopy(q.q)
 
         imc = IncrMonteCarlo(q=q, gamma=0.9, iterations=20000)
         imc.run(game)
 
-        # for key in q.q:
-        #     if q.q[key] != qq[key]:
-        #         print(f"State and Action: {key}")
-        #         print(f"Before: {qq[key]}, after: {q.q[key]}")
-        #         print("--------------------------------------")
-
         print(q)
+
+        random_player = Player()
+        to_print = []
+        for state in q.all_states:
+            action = random_player.policy(q, state)
+            to_print.append(
+                {
+                    "State": state,
+                    "Action": action
+                }
+            )
+
+        print("Optimal policy is:")
+        print(tabulate(to_print, headers="keys", tablefmt="rst"))
 
 
 def main() -> None:

@@ -1,7 +1,6 @@
 from abc import abstractmethod
 
 from .utils import *
-from random import random
 
 
 class Agent(ABC):
@@ -33,8 +32,8 @@ class Agent(ABC):
     def update_total(self, card: Card):
         match card.number:
             case CardNumber.ACE:
-                # If we get two aces in a row, both of them can be counted as
-                # 1. This is a little OP and will probably need revision.
+                # If we get two aces in a row, both of them can be counted as 1.
+                # This is a little OP and will probably need revision.
                 if self.__state.total + card.value <= 21 and not self.__state.has_ace:
                     self.__state.total += 11
                     self.__state.has_ace = True
@@ -47,12 +46,18 @@ class Agent(ABC):
                         self.__state.total -= 10
                         self.__state.has_ace = False
 
-    def log_experience(self, round: int, exp: list[State | Action | float]):
+    def log_experience(self, round: int, exp: list[State | Action | float]) -> None:
+        """
+        Used for adding new (State, Action, Gain) pair to the experience.
+        """
         if round not in self.__experiences:
             self.__experiences[round] = Experience()
         self.__experiences[round].log(exp)
 
-    def build_gains(self, round: int, result: float, gamma: float):
+    def build_gains(self, round: int, result: float, gamma: float) -> None:
+        """
+        Used for "building gains"; determining the gains starting from every state.
+        """
         self.__experiences[round].build(result, gamma)
 
     def reset(self):
@@ -66,6 +71,7 @@ class Agent(ABC):
 class Dealer(Agent):
     """
     A dealer agent.
+    This agent is deprecated from Level 2 onwards.
     """
 
     @property
@@ -76,7 +82,7 @@ class Dealer(Agent):
         name = name if name else "Dealer"
         super().__init__(state if state else DealerState(), name)
 
-    def policy(self, q: Q, state: State) -> Action:
+    def policy(self, q: Q, state: DealerState) -> Action:
         return Action.HIT if self.state.total < 17 else Action.HOLD
 
 
@@ -85,7 +91,7 @@ class Player(Agent):
     A player agent.
     """
 
-    __no_players = 0
+    __no_players = 0  # Using this just to name players, not much importance.
 
     @property
     def state(self) -> State:
@@ -98,6 +104,6 @@ class Player(Agent):
 
     def policy(self, q: Q, state: PlayerState) -> Action:
         """
-        Greedy policy.
+        A greedy policy in this case.
         """
         return Action.HIT if q[(state, Action.HIT)] > q[(state, Action.HOLD)] else Action.HOLD

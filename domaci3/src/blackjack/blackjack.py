@@ -20,7 +20,7 @@ class Game:
         self.__players = players if players else [Player() for _ in range(2)]
         self.__deck = deck if deck else CardDeck()
 
-    def __initialize_round(self, players: list[Agent], round: int) -> None:
+    def __initialize_round(self) -> None:
         """
         A blackjack game initializer. One card is given to
         each player and one card is commonly drawn, meaning that
@@ -68,19 +68,22 @@ class Game:
         """
         for round in range(len(self.__players)):
             players = copy(self.__players)
+
+            # A blackjack rule - each round, other player starts the game.
+            # This will be simulated by putting the player on the list's first index.
             players[round], players[0] = players[0], players[round]
-            self.__initialize_round(players, round)
+            self.__initialize_round()
 
             # Play the round and determine which players won the round.
             winners = self.__play_round(players, q, round)
 
-            # If there's only one player who won the round,
-            # it's the only player that will get a positive reward.
+            # If there's only one player who won the round, only he
+            # will get a positive reward.
             if len(winners) == 1:
                 winners[0].build_gains(round, 1.0, gamma)
 
-            # If there are multiple winners, they all get a neutral
-            # reward 0, which is already default.
+            # If there are multiple winners, they all get a neutral reward 0 for drawing,
+            # which is already default.
             # Rest of the players get a negative reward.
             for player in players:
                 if player not in winners:

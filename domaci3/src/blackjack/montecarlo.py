@@ -1,5 +1,7 @@
 from dataclasses import field
 
+from numpy import sort
+
 from .blackjack import *
 
 
@@ -20,11 +22,16 @@ class MonteCarlo(ABC):
 
 
 class IncrMonteCarlo(MonteCarlo):
+    """
+    A incremental Monte Carlo algorithm.
+    """
 
     def __init__(self, q: Q = None, gamma: float = 1.0, alpha: float = 0.05, iterations: int = 1000):
         super().__init__(q if q else Q(), gamma, alpha, iterations)
 
     def run(self, game: Game) -> Q:
+
+        test = list()
         for _ in range(self.iterations):
             game.play(self.q, self.gamma)
 
@@ -41,8 +48,11 @@ class IncrMonteCarlo(MonteCarlo):
                             occurrences[(s, a)] = list()
                         occurrences[(s, a)].append(g)
 
-                    # This DOES NOT mean that we're going to forget (clear)
-                    # the experiences. All experiences of this game are
+                        if (s, a) not in test:
+                            test.append((s, a))
+
+                    # This DOES NOT mean that we're going to forget experiences.
+                    # All experiences of this game are
                     # transferred to `occurrences` dictionary, and we
                     # clear experiences for the next game.
                     player.experiences[round].clear()
@@ -50,5 +60,11 @@ class IncrMonteCarlo(MonteCarlo):
             for sa in occurrences:
                 average = sum(occurrences[sa]) / len(occurrences[sa])
                 self.q[sa] = self.q[sa] + self.alpha * (average - self.q[sa])
+
+        test.sort(key=lambda x: x[0].total)
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        for sa in test:
+            print(sa)
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 
         return self.q
