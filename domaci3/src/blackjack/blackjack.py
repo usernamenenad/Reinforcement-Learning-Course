@@ -43,15 +43,17 @@ class Game:
 
         for player in players:
             while True:
+
                 action = player.policy(q, player.state)
-                player.log_experience(round, [deepcopy(player.state), action, 0.0])
 
                 if action == Action.HOLD:
                     # Determine if this is the new max_total.
+                    player.log_experience(round, [deepcopy(player.state), action, 0])
                     max_total = player.state.total if player.state.total > max_total else max_total
                     break
 
                 card = self.__deck.draw()
+                player.log_experience(round, [deepcopy(player.state), action, 0.0, card])
                 player.update_total(card)
 
                 if player.state.total > 21:
@@ -62,12 +64,14 @@ class Game:
 
         return [player for player in players if player.state.total == max_total]
 
-    def play(self, q: Q, gamma: float = 1.0):
+    def play(self, q: Q, gamma: float = 1.0) -> None:
         """
         A gameplay method that simulates one blackjack game.
         """
+
         for round in range(len(self.__players)):
             players = copy(self.__players)
+            round_results: list[float] = list()
 
             # A blackjack rule - each round, other player starts the game.
             # This will be simulated by putting the player on the list's first index.

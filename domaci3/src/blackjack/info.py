@@ -65,18 +65,44 @@ class Info:
         plt.show()
 
     @staticmethod
-    def log_experiences(game: Game):
-        for player in game.players:
-            print(f"{player.name}'s experience:\r\n")
+    def log_experiences(players: list[Agent]) -> str:
+        logger: str = ""
+
+        for player in players:
+            logger += f"{player.name}'s experience:\r\n"
             for round in player.experiences:
-                print(f"Round {round + 1}")
                 to_print = list()
-                for experience in player.experiences[round].experience:
+                for experience in player.experiences[round]:
                     to_print.append(
                         {
                             "State": experience[0],
                             "Action": experience[1].name,
+                            "Drew card": experience[3].number if len(experience) == 4 else "-",
                             "Gain": experience[2]
                         }
                     )
-                print(tabulate(to_print, headers="keys", tablefmt="rst") + "\r\n")
+                logger += tabulate(to_print, headers="keys", tablefmt="rst") + "\r\n\r\n"
+
+        return logger
+
+    @staticmethod
+    def log_game(game: Game, game_number: int = 0):
+        to_log = f"[Game {game_number}]:\r\n\r\n" + Info.log_experiences(game.players) + "\r\n"
+        with open("game_log.txt", "a") as gl:
+            gl.write(to_log)
+
+    @staticmethod
+    def log_optimal_policy(q: Q):
+        to_log = []
+
+        for state in q.all_states:
+            action = GreedyPolicy.act(q, state)
+            to_log.append(
+                {
+                    "State": state,
+                    "Action": action
+                }
+            )
+
+        with open("optimal_policy_log.txt", "w") as opl:
+            opl.write("Optimal policy: \r\n\r\n" + tabulate(to_log, headers="keys", tablefmt="rst"))

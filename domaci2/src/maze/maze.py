@@ -25,19 +25,19 @@ class MazeEnvironment:
         return self.__base
 
     @property
-    def states(self) -> list[Position]:
+    def states(self) -> list[State]:
         return self.__states
 
     @property
-    def q_values(self) -> Dict[tuple[Position, Action], float]:
+    def q_values(self) -> Dict[tuple[State, Action], float]:
         return self.__q_values
 
     @property
-    def v_values(self) -> Dict[Position, float]:
+    def v_values(self) -> Dict[State, float]:
         return self.__v_values
 
     @property
-    def probabilities(self) -> Dict[tuple[Position, Action], Dict[Direction, float]]:
+    def probabilities(self) -> Dict[tuple[State, Action], Dict[Direction, float]]:
         return self.__probabilities
 
     @property
@@ -52,36 +52,36 @@ class MazeEnvironment:
         :param gamma: Discount factor.
         """
         self.__base = base
-        self.__states: list[Position] = [
+        self.__states: list[State] = [
             node
             for node in self.base.nodes
             if self.base[node].is_steppable and not isinstance(self.__base[node], TeleportCell)
         ]
 
         # Setting probabilities
-        self.__probabilities: Dict[tuple[Position, Action], Dict[Direction, float]] = dict()
+        self.__probabilities: Dict[tuple[State, Action], Dict[Direction, float]] = dict()
         self.__set_probabilities()
 
-        self.__q_values: Dict[tuple[Position, Action], float] = {
-            (s, a): -10 * random() if not self.is_terminal(s) else 0
+        self.__q_values: Dict[tuple[State, Action], float] = {
+            (s, a): -10 * random() if not self.is_terminal(s) else 0.0
             for s in self.__states
             for a in self.get_actions()
         }
 
-        self.__v_values: Dict[Position, float] = {
+        self.__v_values: Dict[State, float] = {
             s: self.determine_v(s) for s in self.__states
         }
 
         self.__gamma = gamma
 
-    def __call__(self, state: Position | Any, action: Action) -> list[dict[str, Any]]:
+    def __call__(self, state: State | Any, action: Action) -> list[dict[str, Any]]:
         """
         Makes possible for environment class to act as a Markov Decision process -
         for a given state and action, it will return new states and rewards.
         """
         next_states = list()
 
-        if not isinstance(state, Position):
+        if not isinstance(state, State):
             for node in self.base.nodes:
                 if node == state:
                     state = node
@@ -139,7 +139,7 @@ class MazeEnvironment:
                     )
                 self.__v_values[s] = self.determine_v(s)
 
-    def compute_direction(self, state: Position, direction: Direction) -> Position:
+    def compute_direction(self, state: State, direction: Direction) -> State:
         """
         Follow a specific direction in this environment.
         If possible, it will use base for computing direction.
@@ -166,7 +166,7 @@ class MazeEnvironment:
 
         return max_iter
 
-    def determine_v(self, s: Position):
+    def determine_v(self, s: State):
         """
         Method for determining V values using Q values.
         """
@@ -198,7 +198,7 @@ class MazeEnvironment:
         """
         return Direction.get_all_directions()
 
-    def is_terminal(self, state: Position):
+    def is_terminal(self, state: State):
         """
         Returns if the state is terminal.
         """

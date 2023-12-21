@@ -1,6 +1,36 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
+from random import random
 
 from .utils import *
+
+
+class Policy(ABC):
+
+    @staticmethod
+    @abstractmethod
+    def act(q: Q, state: State) -> Action:
+        pass
+
+
+class RandomPolicy(Policy):
+
+    @staticmethod
+    def act(q: Q, state: State) -> Action:
+        return Action.HIT if random() < 0.5 else Action.HOLD
+
+
+class GreedyPolicy(Policy):
+
+    @staticmethod
+    def act(q: Q, state: State) -> Action:
+        return Action.HIT if q[(state, Action.HIT)] > q[(state, Action.HOLD)] else Action.HOLD
+
+
+class DealerPolicy(Policy):
+
+    @staticmethod
+    def act(q: Q, state: State) -> Action:
+        return Action.HIT if state.total < 17 else Action.HOLD
 
 
 class Agent(ABC):
@@ -46,7 +76,7 @@ class Agent(ABC):
                         self.__state.total -= 10
                         self.__state.has_ace = False
 
-    def log_experience(self, round: int, exp: list[State | Action | float]) -> None:
+    def log_experience(self, round: int, exp: list[State | Action | float | Card]) -> None:
         """
         Used for adding new (State, Action, Gain) pair to the experience.
         """
@@ -83,7 +113,7 @@ class Dealer(Agent):
         super().__init__(state if state else DealerState(), name)
 
     def policy(self, q: Q, state: DealerState) -> Action:
-        return Action.HIT if self.state.total < 17 else Action.HOLD
+        return DealerPolicy.act(q, state)
 
 
 class Player(Agent):
@@ -91,19 +121,19 @@ class Player(Agent):
     A player agent.
     """
 
-    __no_players = 0  # Using this just to name players, not much importance.
+    no_players = 0  # Using this just to name players, not much importance.
 
     @property
     def state(self) -> State:
         return super().state
 
     def __init__(self, state: PlayerState = None, name: str = None):
-        name = name if name else "Player" + str(Player.__no_players)
-        Player.__no_players += 1
+        name = name if name else "Player" + str(Player.no_players)
+        Player.no_players += 1
         super().__init__(state if state else PlayerState(), name)
 
-    def policy(self, q: Q, state: PlayerState) -> Action:
+    def policy(self, q: Q, state: State) -> Action:
         """
         A greedy policy in this case.
         """
-        return Action.HIT if q[(state, Action.HIT)] > q[(state, Action.HOLD)] else Action.HOLD
+        return GreedyPolicy.act(q, state)

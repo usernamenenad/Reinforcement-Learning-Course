@@ -1,8 +1,9 @@
-from dataclasses import field
+import os.path
 
-from numpy import sort
+from tqdm import tqdm, trange
+import warnings
 
-from .blackjack import *
+from .info import *
 
 
 class MonteCarlo(ABC):
@@ -31,9 +32,19 @@ class IncrMonteCarlo(MonteCarlo):
 
     def run(self, game: Game) -> Q:
 
-        test = list()
-        for _ in range(self.iterations):
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+        print("Starting Incremental Monte Carlo...")
+
+        if os.path.exists("game_log.txt"):
+            os.remove("game_log.txt")
+
+        for i in trange(self.iterations):
+
+            # Log wins, draws and losses for each round of the game
             game.play(self.q, self.gamma)
+
+            # Log game information in a text file
+            Info.log_game(game, i)
 
             # What (state, action) pairs showed up in this game.
             # We will use the `every occurrence` approach, meaning that
@@ -48,9 +59,6 @@ class IncrMonteCarlo(MonteCarlo):
                             occurrences[(s, a)] = list()
                         occurrences[(s, a)].append(g)
 
-                        if (s, a) not in test:
-                            test.append((s, a))
-
                     # This DOES NOT mean that we're going to forget experiences.
                     # All experiences of this game are
                     # transferred to `occurrences` dictionary, and we
@@ -61,10 +69,5 @@ class IncrMonteCarlo(MonteCarlo):
                 average = sum(occurrences[sa]) / len(occurrences[sa])
                 self.q[sa] = self.q[sa] + self.alpha * (average - self.q[sa])
 
-        test.sort(key=lambda x: x[0].total)
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        for sa in test:
-            print(sa)
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-
+        print("Finished Incremental Monte Carlo!")
         return self.q
