@@ -58,65 +58,22 @@ class Info:
                             ax.text(s[1] - 0.25, s[0] + 0.1, "↓")
 
     @staticmethod
-    def __draw_graph(graph: MazeGraph, ax=None):
+    def __draw_graph(graph: MazeGraph, labels: dict[State, str] = None, ax=None):
         g = nx.DiGraph()
-        colors = {}
-        labels = {}
+        colors = dict()
+        labels = labels if labels else dict()
 
         # Defining nodes
         for node in graph.nodes:
             g.add_node(node)
 
         # Defining edges
-        for node in graph.states:
-            labels[node] = len(labels)
-            cell = graph.states[node]
+        for node in graph.nodes:
+            cell = graph.nodes[node]
             colors[node] = rgb2hex(cell.color[0], cell.color[1], cell.color[2])
-            if node in graph.connections:
-                dn = graph.connections[node]
-                for direction in dn:
-                    to_node = graph.connections[node][direction]
-                    g.add_edge(node.value, to_node.value,
-                               weight=graph[to_node].reward)
-
-        pos = nx.shell_layout(g)
-        cmap = plt.cm.RdBu
-        ew = nx.get_edge_attributes(g, 'weight')
-        weights = [ew[edge] for edge in ew]
-        norm = plt.Normalize(min(weights), max(weights))
-        ec = [cmap(norm(weight)) for weight in weights]
-
-        nx.draw(g,
-                pos=pos,
-                labels=labels,
-                edge_color=ec,
-                width=2,
-                font_size=10,
-                with_labels=True,
-                node_color=[colors[node] for node in colors],
-                node_size=1500,
-                edgecolors='black',
-                ax=ax)
-
-        return g, colors
-
-    @staticmethod
-    def __draw_graph_values(env: MazeEnvironment, ax=None):
-        graph = env.base
-        g, colors = Info.__draw_graph(graph, ax)
-
-        labels = {}
-
-        for node in graph.states:
-            cell = graph.states[node]
-            if node in env.states:
-                labels[node] = str(node.value) + \
-                               f', {env.v[node]:.1f}'
-            else:
-                if isinstance(cell, TeleportCell):
-                    labels[node] = cell.teleport_to.state.value
-                elif isinstance(cell, WallCell):
-                    labels[node] = node.value
+            for direction in graph.get_directions(node):
+                to_node = graph.connections[node][direction]
+                g.add_edge(node, to_node, weight=graph[to_node].reward)
 
         pos = nx.shell_layout(g)
         cmap = plt.cm.RdBu
@@ -136,6 +93,26 @@ class Info:
                 node_size=2000,
                 edgecolors='black',
                 ax=ax)
+
+        return g, colors
+
+    @staticmethod
+    def __draw_graph_values(env: MazeEnvironment, ax=None):
+        graph = env.base
+
+        labels: dict[State, str] = dict()
+
+        for node in graph.nodes:
+            cell = graph.nodes[node]
+            if node in env.states:
+                labels[node] = str(len(labels)) + f", {env.v[node]:.1f}"
+            else:
+                if isinstance(cell, TeleportCell):
+                    labels[node] = f"{len(labels)}, {env.base.find_position(cell.teleport_to)}"
+                elif isinstance(cell, WallCell):
+                    labels[node] = str(len(labels))
+
+        Info.__draw_graph(graph, labels, ax)
 
     @staticmethod
     def __draw_graph_policy(env: MazeEnvironment, policy: Policy, ax=None):
@@ -177,9 +154,9 @@ class Info:
     def draw_base(base: MazeBase, ax=None):
         ax = ax if ax else plt
         if isinstance(base, MazeBoard):
-            Info.__draw_board(base, ax)
+            Info.__draw_board(base, ax=ax)
         elif isinstance(base, MazeGraph):
-            Info.__draw_graph(base, ax)
+            Info.__draw_graph(base, ax=ax)
 
     @staticmethod
     def draw_values(env: MazeEnvironment, ax=None):

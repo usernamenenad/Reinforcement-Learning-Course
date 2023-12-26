@@ -17,6 +17,9 @@ class State:
     def __eq__(self, other):
         return self.__position == other.__position if isinstance(other, State) else self.__position == list(other)
 
+    def __str__(self):
+        return str(self.__position)
+
 
 class Cell(ABC):
     """
@@ -85,6 +88,10 @@ class TeleportCell(Cell):
     regular or terminal cells, but not on other
     teleports nor wall cells.
     """
+
+    @property
+    def reward(self) -> float:
+        return self.__teleport_to.reward
 
     @property
     def color(self) -> tuple[int, int, int]:

@@ -85,9 +85,15 @@ class MazeGraph(MazeBase):
 
         self.set_teleport()
 
+        # # ALL FOUR DIRECTIONS USED PER NODE
+        # for node in self.connections:
+        #     if isinstance(self[node], RegularCell):
+        #         for direction in Direction.get_all_directions():
+        #             self.connections[node][direction] = choice(list(self.nodes.keys()))
+
+        # CUSTOM NUMBER OF DIRECTIONS USED PER NODE
         for node in self.connections:
             if isinstance(self[node], RegularCell):
-
                 directions = Direction.get_all_directions()
                 no_dir = randint(1, len(directions))
 

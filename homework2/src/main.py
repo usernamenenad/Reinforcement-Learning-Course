@@ -13,15 +13,24 @@ if __name__ == '__main__':
         (1, lambda: TeleportCell())
     ]
 
-    _, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 10))
-    axes = axes.flatten()
+    _, axes = plt.subplots(nrows=1, ncols=1, figsize=(10, 10))
 
-    base = MazeBoard(size=(8, 8), specs=DEFAULT_SPECS)
+    # base = MazeBoard(size=(8, 8), specs=DEFAULT_SPECS)
+    # env = MazeEnvironment(base=base,
+    #                       env_type=EnvType.DETERMINISTIC,
+    #                       gamma=0.9)
+    #
+    # k = env.compute_values()
+    # Info.draw_values(env, ax=axes[0])
+    # Info.draw_policy(env, GreedyPolicyV(), ax=axes[1])
+    # plt.show()
+
+    base = MazeGraph(no_nodes=15,
+                     specs=DEFAULT_SPECS)
     env = MazeEnvironment(base=base,
-                          env_type=EnvType.DETERMINISTIC,
-                          gamma=1.0)
-
+                          env_type=EnvType.STOCHASTIC,
+                          gamma=0.9)
+    # Info.draw_values(env, ax=axes)
     k = env.compute_values()
-    Info.draw_values(env, ax=axes[0])
-    Info.draw_policy(env, GreedyPolicyV(), ax=axes[1])
+    Info.draw_values(env, ax=axes)
     plt.show()
