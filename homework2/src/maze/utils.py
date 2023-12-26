@@ -1,13 +1,21 @@
 from abc import ABC, abstractmethod
 from enum import Enum, auto
+from random import choices
 from typing import Callable
 
 
-class Position(ABC):
-    @property
-    @abstractmethod
-    def value(self):
-        pass
+class State:
+    def __init__(self, position: list[int]):
+        self.__position: list[int] = position
+
+    def __getitem__(self, key: int):
+        return self.__position[key]
+
+    def __hash__(self):
+        return hash(self.__position.__hash__)
+
+    def __eq__(self, other):
+        return self.__position == other.__position if isinstance(other, State) else self.__position == list(other)
 
 
 class Cell(ABC):
@@ -16,19 +24,8 @@ class Cell(ABC):
     """
 
     @property
-    @abstractmethod
-    def position(self) -> Position:
-        pass
-
-    @position.setter
-    @abstractmethod
-    def position(self, position: Position):
-        pass
-
-    @property
-    @abstractmethod
     def reward(self) -> float:
-        pass
+        return self.__reward
 
     @property
     @abstractmethod
@@ -43,37 +40,21 @@ class Cell(ABC):
     def is_terminal(self) -> bool:
         return False
 
-    @property
-    def has_value(self) -> bool:
-        return True
+    def __init__(self, reward: float = None):
+        self.__reward = reward
 
 
 class RegularCell(Cell):
     """
-    A regular cell class.
-
     A common, non-terminal, steppable cell.
     """
-
-    @property
-    def position(self) -> Position:
-        return self.__position
-
-    @position.setter
-    def position(self, position: Position):
-        self.__position = position
-
-    @property
-    def reward(self) -> float:
-        return self.__reward
 
     @property
     def color(self) -> tuple[int, int, int]:
         return (255, 255, 255) if self.reward == -1 else (255, 0, 0)
 
     def __init__(self, reward: float):
-        self.__position: Position = Position()
-        self.__reward: float = reward
+        super().__init__(reward)
 
 
 class TerminalCell(Cell):
@@ -85,18 +66,6 @@ class TerminalCell(Cell):
     """
 
     @property
-    def position(self) -> Position:
-        return self.__position
-
-    @position.setter
-    def position(self, position: Position):
-        self.__position = position
-
-    @property
-    def reward(self) -> float:
-        return self.__reward
-
-    @property
     def color(self) -> tuple[int, int, int]:
         return 0, 0, 255
 
@@ -105,8 +74,7 @@ class TerminalCell(Cell):
         return True
 
     def __init__(self, reward: float):
-        self.__position: Position = Position()
-        self.__reward: float = reward
+        super().__init__(reward)
 
 
 class TeleportCell(Cell):
@@ -119,64 +87,34 @@ class TeleportCell(Cell):
     """
 
     @property
-    def position(self) -> Position:
-        return self.__position
-
-    @position.setter
-    def position(self, position: Position):
-        self.__position = position
-
-    @property
-    def reward(self) -> float:
-        return self.__to_teleport_to.reward
-
-    @property
     def color(self) -> tuple[int, int, int]:
         return 0, 255, 0
 
     @property
-    def to_teleport_to(self) -> Cell:
-        return self.__to_teleport_to
+    def teleport_to(self) -> Cell:
+        return self.__teleport_to
 
-    @to_teleport_to.setter
-    def to_teleport_to(self, to_teleport_to: Cell):
-        self.__to_teleport_to = to_teleport_to
+    @teleport_to.setter
+    def teleport_to(self, teleport_to: Cell):
+        self.__teleport_to = teleport_to
 
     @property
     def is_steppable(self) -> bool:
-        return self.to_teleport_to.is_steppable
+        return self.teleport_to.is_steppable
 
     @property
     def is_terminal(self) -> bool:
-        return self.to_teleport_to.is_terminal
-
-    @property
-    def has_value(self) -> bool:
-        return self.to_teleport_to.has_value
+        return self.teleport_to.is_terminal
 
     def __init__(self):
-        self.__position: Position = Position()
-        self.__to_teleport_to: Cell = Cell()
+        super().__init__()
+        self.__teleport_to = None
 
 
 class WallCell(Cell):
     """
-    A wall cell class.
-
     A non steppable, wall cell.
     """
-
-    @property
-    def position(self) -> Position:
-        return self.__position
-
-    @position.setter
-    def position(self, position: Position):
-        self.__position = position
-
-    @property
-    def reward(self) -> float:
-        return self.__reward
 
     @property
     def color(self) -> tuple[int, int, int]:
@@ -186,16 +124,18 @@ class WallCell(Cell):
     def is_steppable(self) -> bool:
         return False
 
-    @property
-    def has_value(self) -> bool:
-        return False
-
-    def __init__(self):
-        self.__position: Position = Position()
-        self.__reward: float = 0
+    def __init__(self, reward: float):
+        super().__init__(reward)
 
 
-CellGenerator = Callable[[], Cell]
+class CellGen:
+
+    def __call__(self, specs: list[tuple[float, Callable]]) -> Cell:
+        return choices(
+            population=[call for _, call in specs],
+            weights=[weight for weight, _ in specs],
+            k=1
+        )[0]()
 
 
 class Direction(Enum):
@@ -220,57 +160,9 @@ class Action(Enum):
         return [Action.ACTION_A1, Action.ACTION_A2, Action.ACTION_A3, Action.ACTION_A4]
 
 
-@dataclass
-class Q:
-    """
-    Class for representing Q values.
-    """
-
-    @property
-    def states(self) -> list[State]:
-        return self.__states
-
-    @property
-    def actions(self) -> list[ACtion]:
-        return self.__actions
-
-    def __init__(self, states: list[State], actions: list[Actions]):
-
-        self.__states = states
-        self.__actions = actions
-
-        self.__q: Dict[tuple[State, Action], float] = {
-            (s, a): -10 * random() if not s.is_terminal else 0.0
-            for s in self.__states
-            for a in self.__actions
-        }
-
-    def __getitem__(self, key: tuple[State, Action]) -> float:
-        return self.__q[key]
-
-    def __setitem__(self, key: tuple[State, Action], value: float):
-        self.__q[key] = value
-
-
-@dataclass
-class V:
-    """
-    Class for representing V values.
-    """
-
-    @property
-    def states(self) -> list[State]:
-        return self.__q.states
-
-    def __init__(q: Q):
-        self.__q: Q = q
-        self.__v: Dict[State, float] = {
-            s: random()
-            for s in self.__q.states
-        }
-
-    def __getitem__(self, key: State) -> float:
-        return self.__v[key]
-
-    def __setitem__(self, key: State, value: float):
-        self.__v[key] = value
+ad_map: dict[Action, Direction] = {
+    Action.ACTION_A1: Direction.RIGHT,
+    Action.ACTION_A2: Direction.LEFT,
+    Action.ACTION_A3: Direction.UP,
+    Action.ACTION_A4: Direction.DOWN
+}

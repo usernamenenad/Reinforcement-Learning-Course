@@ -1,67 +1,7 @@
-from random import randint, choice, choices
-from typing import Dict, Iterable
+from random import randint, choice
+from typing import Dict, Any
 
 from .utils import *
-
-
-class GraphPosition(Position):
-    """
-    Inherited from Position class - models a graph node.
-    """
-
-    @property
-    def value(self) -> int:
-        return self.__value
-
-    def __init__(self, value: int):
-        self.__value = value
-
-    def __eq__(self, other) -> bool:
-        if isinstance(other, int):
-            return self.__value == other
-        elif isinstance(other, GraphPosition):
-            return self.__value == other.__value
-
-        raise Exception(
-            f"Cannot use '==' in context of {other.__class__.__name__}"
-        )
-
-    def __hash__(self):
-        return hash(self.__value)
-
-
-class BoardPosition(Position):
-    """
-    Inherited from Position class - models a board square.
-    """
-
-    @property
-    def value(self) -> tuple[int, int]:
-        return self.__value
-
-    def __init__(self, value: tuple[int, int]):
-        self.__value = value
-
-    def __eq__(self, other):
-        if isinstance(other, tuple):
-            return self.__value == other
-        elif isinstance(other, BoardPosition):
-            return self.__value == other.__value
-
-        raise Exception(
-            f"Cannot use '==' in context of {other.__class__.__name__}"
-        )
-
-    def __hash__(self):
-        return hash(self.__value)
-
-    def __getitem__(self, key: int):
-        if key == 0 or key == 1:
-            return self.__value[key]
-
-        raise Exception(
-            f"No position {key} in this base!"
-        )
 
 
 class MazeBase(ABC):
@@ -70,25 +10,56 @@ class MazeBase(ABC):
     """
 
     @property
-    @abstractmethod
-    def nodes(self):
-        pass
+    def nodes(self) -> dict[State, Cell]:
+        return self.__nodes
 
     @property
-    @abstractmethod
-    def connections(self):
-        pass
+    def connections(self) -> Dict[State, dict[Direction, State]]:
+        return self.__connections
+
+    def __init__(self, positions: list[list[int]], specs: list[tuple[float, Callable]]):
+        self.__nodes: dict[State, Cell] = {
+            State(position): CellGen()(specs)
+            for position in positions
+        }
+
+        self.__connections: Dict[State, dict[Direction, State]] = {
+            node: {}
+            for node in self.__nodes
+        }
+
+    def __getitem__(self, state: Any) -> Cell:
+        return self.__nodes[state if isinstance(state, State) else State(list(state))]
+
+    def __iter__(self):
+        return iter(self.__nodes)
+
+    def set_teleport(self):
+        """
+        Private method for configuring teleport cells - to what
+        cells will agent teleport when stepped onto teleport cell.
+        """
+
+        valid_teleports = \
+            [cell for cell in self.__nodes.values() if
+             not isinstance(cell, WallCell) and not isinstance(cell, TeleportCell)]
+
+        for node in self.__nodes:
+            cell = self.__nodes[node]
+            if isinstance(cell, TeleportCell):
+                cell.teleport_to = choice(valid_teleports)
+
+    def find_position(self, cell: Cell) -> State:
+        return list(self.__nodes.keys())[list(self.__nodes.values()).index(cell)]
+
+    def get_directions(self, s: State) -> list[Direction]:
+        return list(self.__connections[s].keys())
+
+    def get_from(self, node: State, direction: Direction) -> State:
+        return self.__connections[node][direction]
 
     @abstractmethod
-    def __getitem__(self, **kwargs) -> Cell:
-        pass
-
-    @abstractmethod
-    def compute_direction(self, node: Position, direction: Direction) -> Position:
-        pass
-
-    @abstractmethod
-    def get_directions(self, s: Position) -> list[Direction]:
+    def set_maze(self) -> None:
         pass
 
 
@@ -97,113 +68,39 @@ class MazeGraph(MazeBase):
     Inherited from MazeBase class - it models a graph.
     """
 
-    @property
-    def nodes(self) -> Dict[Position, Cell]:
-        return self.__nodes
+    def __init__(self, no_nodes: int, specs: list[tuple[float, Callable]]):
 
-    @property
-    def connections(self) -> Dict[Position, Dict[Direction, Position]]:
-        return self.__connections
-
-    @property
-    def size(self) -> int:
-        return self.__no_nodes
-
-    def __init__(self, no_nodes: int, specs: list[tuple[float, CellGenerator]]):
-        weights = [w for w, _ in specs]
-        generators = [g for _, g in specs]
-
-        def random_cell():
-            return choices(generators, weights, k=1)[0]()
-
-        self.__no_nodes = no_nodes
-
-        self.__nodes: Dict[Position, Cell] = \
-            {
-                GraphPosition(i): random_cell()
-                for i in range(self.__no_nodes)
-        }
-
-        self.__connections: Dict[Position, Dict[Direction, Position]] = \
-            {
-                node: {}
-                for node in self.__nodes
-        }
-
-        self.__set_maze()
-
-    def __getitem__(self, key: int | Position) -> Cell:
-        for node in self.__nodes:
-            if node == key:
-                return self.__nodes[node]
-
-        raise Exception(
-            f"No item {key} in this base!"
+        super().__init__(
+            positions=[[i] for i in range(no_nodes)],
+            specs=specs
         )
 
-    def __set_teleport(self):
-        """
-        Private method for configuring teleport cells - to what
-        cells will agent teleport when stepped onto teleport cell.
-        """
-        for node in self.__nodes:
-            self.__nodes[node].position = node
-            cell = self.__nodes[node]
-            if isinstance(cell, TeleportCell):
-                while True:
-                    tp = choice(list(self.__nodes.keys()))
-                    tn = self.__nodes[tp]
-                    if not isinstance(tn, WallCell) and not isinstance(tn, TeleportCell):
-                        cell.position = tp
-                        cell.to_teleport_to = tn
-                        break
+        self.set_maze()
 
-    def __set_maze(self):
+    def set_maze(self):
         """
         Private method for creating graphs -
         making nodes and random edges.
         """
 
-        self.__set_teleport()
+        self.set_teleport()
 
-        for node in self.__connections:
+        for node in self.connections:
             if isinstance(self[node], RegularCell):
+
                 directions = Direction.get_all_directions()
                 no_dir = randint(1, len(directions))
 
                 for _ in range(no_dir):
                     direction = choice(directions)
                     directions.remove(direction)
-                    to_node = choice(list(self.__nodes.keys()))
-                    self.__connections[node][direction] = to_node
-
-    def compute_direction(self, node: Position, direction: Direction) -> Position:
-        """
-        Returns a node that is in direction from a given node. If that is a wall cell,
-        it returns given node.
-        """
-        to_node = self.__connections[node][direction]
-        cell = self.__nodes[to_node]
-        if isinstance(cell, WallCell):
-            return node
-        return to_node
-
-    def get_directions(self, node: Position) -> list[Direction]:
-        return list(self.__connections[node].keys())
+                    self.connections[node][direction] = choice(list(self.nodes.keys()))
 
 
 class MazeBoard(MazeBase):
     """
     Inherited from MazeBase class - models a board.
     """
-
-    @property
-    def nodes(self) -> Dict[Position, Cell]:
-        return self.__nodes
-
-    @property
-    def connections(self) -> Dict[Position, Dict[Direction, Position]]:
-        return self.__connections
 
     @property
     def rows_no(self) -> int:
@@ -217,149 +114,73 @@ class MazeBoard(MazeBase):
     def size(self) -> tuple[int, int]:
         return self.__rows_no, self.__cols_no
 
-    def __init__(self, size: tuple[int, int], specs: list[tuple[float, CellGenerator]]):
-        width, height = size
-        weights = [w for w, _ in specs]
-        generators = [g for _, g in specs]
+    def __init__(self, size: tuple[int, int], specs: list[tuple[float, Callable]]):
 
-        def random_cell():
-            return choices(generators, weights, k=1)[0]()
+        self.__rows_no, self.__cols_no = size
 
-        cells = [[random_cell() for _ in range(width)] for _ in range(height)]
-
-        self.__rows_no, self.__cols_no, cells = MazeBoard.__validate_cells(
-            cells)
-
-        self.__nodes: Dict[Position, Cell] = \
-            {
-                BoardPosition((i, j)): cells[i][j]
-                for i in range(self.__rows_no)
-                for j in range(self.cols_no)
-        }
-
-        self.__connections: Dict[Position, Dict[Direction, Position]] = \
-            {
-                node: {}
-                for node in self.__nodes
-        }
-
-        self.__set_maze()
-
-    def __getitem__(self, key: tuple[int, int]) -> Cell:
-        for node in self.__nodes:
-            if node == key:
-                return self.__nodes[node]
-
-        raise Exception(
-            f"No item {key} in this base!"
+        super().__init__(
+            positions=[[i, j]
+                       for i in range(size[0])
+                       for j in range(size[1])],
+            specs=specs
         )
 
-    @staticmethod
-    def __validate_cells(cells: Iterable[Iterable[Cell]]) -> tuple[int, int, list[list[Cell]]]:
-        """
-        Utility function used to validate the given double-iterable of cells.
+        self.set_maze()
 
-        If checks are successful, it will return number of board rows and
-        columns, as well as cells themselves.
-        """
-        cells = [list(row) for row in cells] if cells else list()
-
-        if not cells:
-            raise Exception("Number of rows in a board must be at least 1.")
-        if not cells[0]:
-            raise Exception("There has to be at least one column.")
-
-        rows_no = len(cells)
-        cols_no = len(cells[0])
-
-        for row in cells:
-            if not row or len(row) != cols_no:
-                raise Exception(
-                    "Each row in a board must have the same number of columns."
-                )
-
-        return rows_no, cols_no, cells
-
-    def __right(self, position: tuple[int, int]):
-        row, col = position
+    def __right(self, position: State) -> State:
+        row, col = position[0], position[1]
         if col != self.__cols_no - 1:
             if self[row, col + 1].is_steppable:
-                return row, col + 1
-        return row, col
+                return State([row, col + 1])
+        return State([row, col])
 
-    def __left(self, position: tuple[int, int]):
-        row, col = position
+    def __left(self, position: State) -> State:
+        row, col = position[0], position[1]
         if col != 0:
             if self[row, col - 1].is_steppable:
-                return row, col - 1
-        return row, col
+                return State([row, col - 1])
+        return State([row, col])
 
-    def __up(self, position: tuple[int, int]):
-        row, col = position
+    def __up(self, position: State) -> State:
+        row, col = position[0], position[1]
         if row != 0:
             if self[row - 1, col].is_steppable:
-                return row - 1, col
-        return row, col
+                return State([row - 1, col])
+        return State([row, col])
 
-    def __down(self, position: tuple[int, int]):
-        row, col = position
+    def __down(self, position: State) -> State:
+        row, col = position[0], position[1]
         if row != self.__rows_no - 1:
             if self[row + 1, col].is_steppable:
-                return row + 1, col
-        return row, col
+                return State([row + 1, col])
+        return State([row, col])
 
-    def __set_teleport(self):
-        """
-        Private method for configuring teleport cells - to what
-        cells will agent teleport when stepped onto teleport cell.
-        """
-
-        for node in self.__nodes:
-            cell = self.__nodes[node]
-            if isinstance(cell, TeleportCell):
-                while True:
-                    tp = choice(list(self.__nodes.keys()))
-                    tn = self.__nodes[tp]
-                    if not isinstance(tn, WallCell) and not isinstance(tn, TeleportCell):
-                        cell.position = tp
-                        cell.to_teleport_to = tn
-                        break
-
-    def __set_maze(self):
+    def set_maze(self):
         """
         Private method for creating board -
         making board squares (here named nodes).
         """
 
-        self.__set_teleport()
+        self.set_teleport()
 
-        for node in self.__nodes:
-            self.__nodes[node].position = node
-            directions = Direction.get_all_directions()
+        for node in self.nodes:
 
-            for direction in directions:
-                if direction == Direction.RIGHT:
-                    di, dj = self.__right(node.value)
-                elif direction == Direction.LEFT:
-                    di, dj = self.__left(node.value)
-                elif direction == Direction.UP:
-                    di, dj = self.__up(node.value)
-                elif direction == Direction.DOWN:
-                    di, dj = self.__down(node.value)
-                else:
-                    raise Exception(
-                        f"Board doesn't support {direction.name}!"
-                    )
-                for dnode in self.__nodes:
-                    if dnode == (di, dj):
-                        self.__connections[node][direction] = dnode
+            for direction in Direction.get_all_directions():
 
-    def compute_direction(self, node: Position, direction: Direction) -> Position:
-        """
-        Returns a node that is in direction from a given node. If that is a wall cell,
-        it returns given node.
-        """
-        return self.__connections[node][direction]
+                match direction:
+                    case Direction.RIGHT:
+                        dc = self.__right(node)
+                    case Direction.LEFT:
+                        dc = self.__left(node)
+                    case Direction.UP:
+                        dc = self.__up(node)
+                    case Direction.DOWN:
+                        dc = self.__down(node)
+                    case _:
+                        raise Exception(
+                            f"No direction {direction} supported for this type of maze!"
+                        )
 
-    def get_directions(self, node: Position) -> list[Direction]:
-        return list(self.__connections[node].keys())
+                for dnode in self.nodes:
+                    if dnode == dc:
+                        self.connections[node][direction] = dnode
