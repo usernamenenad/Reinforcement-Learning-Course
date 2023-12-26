@@ -80,6 +80,9 @@ class Info:
         ew = nx.get_edge_attributes(g, 'weight')
         weights = [ew[edge] for edge in ew]
         norm = plt.Normalize(min(weights), max(weights))
+        sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(min(weights), max(weights)))
+        sm.set_array([])
+        cbar = plt.colorbar(sm, ax=ax)
         ec = [cmap(norm(weight)) for weight in weights]
 
         nx.draw(g,
@@ -116,39 +119,22 @@ class Info:
 
     @staticmethod
     def __draw_graph_policy(env: MazeEnvironment, policy: Policy, ax=None):
-        g, colors = Info.__draw_graph(env.base, ax=ax)
 
         labels = {}
 
-        pos = nx.shell_layout(g)
-        cmap = plt.cm.RdBu
-        ew = nx.get_edge_attributes(g, 'weight')
-        weights = [ew[edge] for edge in ew]
-        norm = plt.Normalize(min(weights), max(weights))
-        ec = [cmap(norm(weight)) for weight in weights]
+        for s in env.states:
+            if not env.base[s].is_terminal:
+                a = policy.act(s, env, env.actions)
+                if a == Action.ACTION_A1:
+                    labels[s] = 'A1'
+                elif a == Action.ACTION_A2:
+                    labels[s] = 'A2'
+                elif a == Action.ACTION_A3:
+                    labels[s] = 'A3'
+                else:
+                    labels[s] = 'A4'
 
-        for s in env.base.nodes:
-            a = policy.act(s, env, env.actions)
-            if a == Action.ACTION_A1:
-                labels[s] = 'A1'
-            elif a == Action.ACTION_A2:
-                labels[s] = 'A2'
-            elif a == Action.ACTION_A3:
-                labels[s] = 'A3'
-            else:
-                labels[s] = 'A4'
-
-        nx.draw(g,
-                pos=pos,
-                labels=labels,
-                edge_color=ec,
-                width=2,
-                font_size=10,
-                with_labels=True,
-                node_color=[colors[node] for node in colors],
-                node_size=1500,
-                edgecolors='black',
-                ax=ax)
+        Info.__draw_graph(env.base, labels, ax)
 
     @staticmethod
     def draw_base(base: MazeBase, ax=None):

@@ -234,7 +234,7 @@ class MazeEnvironment:
 
         return next_states
 
-    def __update_values(self):
+    def __update_values(self) -> None:
         """
         Private method for updating Q and V values.
         """
@@ -249,17 +249,16 @@ class MazeEnvironment:
                     )
                 self.__v[s] = self.__v.determine(s)
 
-    def compute_values(self, eps: float = 0.01, iters: int = 1000):
+    def compute_values(self, eps: float = 0.01, iters: int = 1000) -> int:
         """
         Method for converging Q and V values using Bellman's equations.
         """
-        for iteration in range(iters):
-            print(iteration)
+        for k in range(iters):
             ov = deepcopy(self.__q)
             self.__update_values()
             err = max([abs(self.__q[sa] - ov[sa])
                        for sa in self.__q])
             if err < eps:
-                return iteration
+                return k
 
         return iters

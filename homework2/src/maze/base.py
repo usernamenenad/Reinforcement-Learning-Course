@@ -68,10 +68,10 @@ class MazeGraph(MazeBase):
     Inherited from MazeBase class - it models a graph.
     """
 
-    def __init__(self, no_nodes: int, specs: list[tuple[float, Callable]]):
+    def __init__(self, size: int, specs: list[tuple[float, Callable]]):
 
         super().__init__(
-            positions=[[i] for i in range(no_nodes)],
+            positions=[[i] for i in range(size)],
             specs=specs
         )
 
