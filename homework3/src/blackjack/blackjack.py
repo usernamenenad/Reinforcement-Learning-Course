@@ -67,7 +67,7 @@ class Game(Observable):
                     player.state.total = 0
                     break
                 else:
-                    self.notify(old_state, player.state, action, 0.0)
+                    self.notify(old_state, deepcopy(player.state), action, 0.0)
 
         return [player for player in players if player.state.total == max_total]
 

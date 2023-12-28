@@ -48,7 +48,7 @@ class QLearning(TD, Observer):
         if os.path.exists("game_log_ql.txt"):
             os.remove("game_log_ql.txt")
 
-        for i in trange(iterations):
+        for i in range(iterations):
             # Play a game
             game.play(EpsilonGreedyPolicy(epsilon=0.3), self.q, self.gamma)
 

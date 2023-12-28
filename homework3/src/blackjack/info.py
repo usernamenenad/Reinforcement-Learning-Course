@@ -92,7 +92,7 @@ class Info:
             gl.write(to_log)
 
     @staticmethod
-    def log_optimal_policy(q: Q, policy: str):
+    def log_optimal_policy(q: Q, estimator: str):
         to_log = []
 
         for state in q.all_states:
@@ -104,5 +104,5 @@ class Info:
                 }
             )
 
-        with open(f"optimal_policy_{policy}.txt", "w") as opl:
+        with open(f"optimal_policy_{estimator}.txt", "w") as opl:
             opl.write("Optimal policy: \r\n\r\n" + tabulate(to_log, headers="keys", tablefmt="rst"))

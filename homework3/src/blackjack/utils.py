@@ -1,6 +1,6 @@
 from dataclasses import dataclass, astuple
 from enum import Enum, StrEnum, auto
-from random import shuffle
+from random import shuffle, random
 
 from tabulate import tabulate
 
@@ -191,7 +191,7 @@ class Q:
         self.all_actions: list[Action] = [Action.HOLD, Action.HIT]
 
         self.q: dict[tuple[State, Action], float] = {
-            (s, a): 0.0
+            (s, a): random()
             for s in self.all_states
             for a in self.all_actions
         }
@@ -220,8 +220,3 @@ class Q:
 
     def determine_v(self, s: State):
         return max([self.q[s, a] for a in self.all_actions])
-
-
-class Estimator(Enum):
-    MonteCarlo = auto()
-    TemporalDifference = auto()

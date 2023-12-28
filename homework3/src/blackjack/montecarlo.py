@@ -38,10 +38,10 @@ class IncrMonteCarlo(MonteCarlo):
         if os.path.exists("game_log_mc.txt"):
             os.remove("game_log_mc.txt")
 
-        for i in trange(iterations):
+        for i in range(iterations):
 
             # Play a game
-            game.play(GreedyPolicy(), self.q, self.gamma)
+            game.play(RandomPolicy(), self.q, self.gamma)
 
             # Log game information in a text file
             Info.log_game(game, i, "mc")
@@ -65,9 +65,9 @@ class IncrMonteCarlo(MonteCarlo):
                     # clear experiences for the next game.
                     player.experiences[rnd].clear()
 
-            for sa in occurrences:
-                average = sum(occurrences[sa]) / len(occurrences[sa])
-                self.q[sa] = self.q[sa] + self.alpha * (average - self.q[sa])
+            for s, a in occurrences:
+                average = sum(occurrences[s, a]) / len(occurrences[s, a])
+                self.q[s, a] = self.q[s, a] + self.alpha * (average - self.q[s, a])
 
         print("Finished Incremental Monte Carlo!")
         return self.q
