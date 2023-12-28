@@ -25,6 +25,19 @@ class QLearning(TD, Observer):
     An off-policy method.
     """
 
+    def update(self, new_state: tuple[State, State, Action, float]):
+        state = new_state[0]
+        next_state = new_state[1]
+        action = new_state[2]
+        reward = new_state[3]
+
+        if next_state:
+            v_plus = self.q.determine_v(next_state)
+        else:
+            v_plus = 0.0
+
+        self.q[state, action] = (1 - self.alpha) * self.q[state, action] + self.alpha * (reward + self.gamma * v_plus)
+
     def __init__(self, q: Q = None, gamma: float = 1.0, alpha: float = 0.1):
         super().__init__(q if q else Q(), gamma, alpha)
 
@@ -44,21 +57,6 @@ class QLearning(TD, Observer):
 
             for player in game.players:
                 for rnd in player.experiences:
-                    for j, part in enumerate(player.experiences[rnd].experience):
-                        s, a = part[0], part[1]
-                        if j + 1 < len(player.experiences[rnd].experience):
-                            r = 0.0
-                            v_plus = self.q.determine_v(player.experiences[rnd][j + 1][0])
-                        else:
-                            r = part[2]
-                            v_plus = 0.0
-
-                        self.q[s, a] = (1 - self.alpha) * self.q[s, a] + self.alpha * (r + self.gamma * v_plus)
-
-                    # This DOES NOT mean that we're going to forget experiences.
-                    # All experiences of this game are
-                    # transferred to `occurrences` dictionary, and we
-                    # clear experiences for the next game.
                     player.experiences[rnd].clear()
 
         print("Finished Q-Learning!")

@@ -53,9 +53,12 @@ class TestBlackjack(unittest.TestCase):
         game = Game(players)
 
         ql = QLearning(q=q, gamma=0.9)
+        game.attach(ql)
         ql.run(game, 20000)
 
         Info.log_optimal_policy(q, "ql")
+
+        # print(q)
 
 
 def main() -> None:

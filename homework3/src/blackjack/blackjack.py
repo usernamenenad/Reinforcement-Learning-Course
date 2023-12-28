@@ -58,7 +58,7 @@ class Game(Observable):
 
                 card = self.__deck.draw()
                 player.log_experience(rnd, [deepcopy(player.state), action, 0.0, card])
-                old_state = player.state
+                old_state = deepcopy(player.state)
                 player.update_total(card)
 
                 if player.state.total > 21:
@@ -66,6 +66,8 @@ class Game(Observable):
                     # print(f"{player.name} busted!")
                     player.state.total = 0
                     break
+                else:
+                    self.notify(old_state, player.state, action, 0.0)
 
         return [player for player in players if player.state.total == max_total]
 
@@ -89,6 +91,16 @@ class Game(Observable):
             # will get a positive reward.
             if len(winners) == 1:
                 winners[0].build_gains(rnd, 1.0, gamma)
+                state = deepcopy(winners[0].experiences[rnd][-1][0])
+                action = deepcopy(winners[0].experiences[rnd][-1][1])
+                reward = 1.0
+                self.notify(state, None, action, reward)
+            else:
+                for winner in winners:
+                    state = deepcopy(winner.experiences[rnd][-1][0])
+                    action = deepcopy(winner.experiences[rnd][-1][1])
+                    reward = 0.0
+                    self.notify(state, None, action, reward)
 
             # If there are multiple winners, they all get a neutral reward 0 for drawing,
             # which is already default.
@@ -96,6 +108,10 @@ class Game(Observable):
             for player in players:
                 if player not in winners:
                     player.build_gains(rnd, -1.0, gamma)
+                    state = deepcopy(player.experiences[rnd][-1][0])
+                    action = deepcopy(player.experiences[rnd][-1][1])
+                    reward = -1.0
+                    self.notify(state, None, action, reward)
 
             for player in self.__players:
                 player.reset()
