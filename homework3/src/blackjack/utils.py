@@ -1,6 +1,6 @@
 from dataclasses import dataclass, astuple
-from enum import Enum, StrEnum
-from random import shuffle, random
+from enum import Enum, StrEnum, auto
+from random import shuffle
 
 from tabulate import tabulate
 
@@ -132,6 +132,9 @@ class Experience:
     def __iter__(self):
         return iter(self.__experience)
 
+    def __getitem__(self, index: int):
+        return self.__experience[index]
+
     def __repr__(self):
         to_print = list()
         for exp in self.__experience:
@@ -188,7 +191,7 @@ class Q:
         self.all_actions: list[Action] = [Action.HOLD, Action.HIT]
 
         self.q: dict[tuple[State, Action], float] = {
-            (s, a): random()
+            (s, a): 0.0
             for s in self.all_states
             for a in self.all_actions
         }
@@ -214,3 +217,11 @@ class Q:
             )
 
         return tabulate(to_repr, headers="keys", tablefmt="rst")
+
+    def determine_v(self, s: State):
+        return max([self.q[s, a] for a in self.all_actions])
+
+
+class Estimator(Enum):
+    MonteCarlo = auto()
+    TemporalDifference = auto()

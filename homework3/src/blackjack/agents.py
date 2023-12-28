@@ -1,36 +1,6 @@
 from abc import ABC, abstractmethod
-from random import random
 
 from .utils import *
-
-
-class Policy(ABC):
-
-    @staticmethod
-    @abstractmethod
-    def act(q: Q, state: State) -> Action:
-        pass
-
-
-class RandomPolicy(Policy):
-
-    @staticmethod
-    def act(q: Q, state: State) -> Action:
-        return Action.HIT if random() < 0.5 else Action.HOLD
-
-
-class GreedyPolicy(Policy):
-
-    @staticmethod
-    def act(q: Q, state: State) -> Action:
-        return Action.HIT if q[(state, Action.HIT)] > q[(state, Action.HOLD)] else Action.HOLD
-
-
-class DealerPolicy(Policy):
-
-    @staticmethod
-    def act(q: Q, state: State) -> Action:
-        return Action.HIT if state.total < 17 else Action.HOLD
 
 
 class Agent(ABC):
@@ -51,6 +21,7 @@ class Agent(ABC):
     def name(self) -> str:
         return self.__name
 
+    @abstractmethod
     def __init__(self, state: State, name: str):
         self.__state = state
         self.__experiences: dict[int, Experience] = dict()
@@ -59,11 +30,9 @@ class Agent(ABC):
     def __repr__(self):
         return self.__name
 
-    def update_total(self, card: Card):
+    def update_total(self, card: Card) -> None:
         match card.number:
             case CardNumber.ACE:
-                # If we get two aces in a row, both of them can be counted as 1.
-                # This is a little OP and will probably need revision.
                 if self.__state.total + card.value <= 21 and not self.__state.has_ace:
                     self.__state.total += 11
                     self.__state.has_ace = True
@@ -76,26 +45,22 @@ class Agent(ABC):
                         self.__state.total -= 10
                         self.__state.has_ace = False
 
-    def log_experience(self, round: int, exp: list[State | Action | float | Card]) -> None:
+    def log_experience(self, rnd: int, exp: list[State | Action | float | Card]) -> None:
         """
         Used for adding new (State, Action, Gain) pair to the experience.
         """
-        if round not in self.__experiences:
-            self.__experiences[round] = Experience()
-        self.__experiences[round].log(exp)
+        if rnd not in self.__experiences:
+            self.__experiences[rnd] = Experience()
+        self.__experiences[rnd].log(exp)
 
-    def build_gains(self, round: int, result: float, gamma: float) -> None:
+    def build_gains(self, rnd: int, result: float, gamma: float) -> None:
         """
         Used for "building gains"; determining the gains starting from every state.
         """
-        self.__experiences[round].build(result, gamma)
+        self.__experiences[rnd].build(result, gamma)
 
     def reset(self):
         self.__state.reset()
-
-    @abstractmethod
-    def policy(self, q: Q, state: State) -> Action:
-        pass
 
 
 class Dealer(Agent):
@@ -111,9 +76,6 @@ class Dealer(Agent):
     def __init__(self, state: DealerState = None, name: str = None):
         name = name if name else "Dealer"
         super().__init__(state if state else DealerState(), name)
-
-    def policy(self, q: Q, state: DealerState) -> Action:
-        return DealerPolicy.act(q, state)
 
 
 class Player(Agent):
@@ -131,9 +93,3 @@ class Player(Agent):
         name = name if name else "Player" + str(Player.no_players)
         Player.no_players += 1
         super().__init__(state if state else PlayerState(), name)
-
-    def policy(self, q: Q, state: State) -> Action:
-        """
-        A greedy policy in this case.
-        """
-        return GreedyPolicy.act(q, state)

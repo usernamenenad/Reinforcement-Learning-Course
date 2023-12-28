@@ -41,13 +41,21 @@ class TestBlackjack(unittest.TestCase):
         players = [Player() for _ in range(no_players)]
         game = Game(players)
 
-        imc = IncrMonteCarlo(q=q, gamma=0.9, iterations=1000)
-        imc.run(game)
+        imc = IncrMonteCarlo(q=q, gamma=0.9)
+        imc.run(game, iterations=20000)
 
-        # print(q)
+        Info.log_optimal_policy(q, "mc")
 
-    def test_optimal_policy(self):
-        Info.log_optimal_policy(q)
+    def test_q_learning(self):
+        Player.no_players = 0
+        no_players = 2
+        players = [Player() for _ in range(no_players)]
+        game = Game(players)
+
+        ql = QLearning(q=q, gamma=0.9)
+        ql.run(game, 20000)
+
+        Info.log_optimal_policy(q, "ql")
 
 
 def main() -> None:

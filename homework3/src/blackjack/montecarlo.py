@@ -1,6 +1,6 @@
 import os.path
 
-from tqdm import tqdm, trange
+from tqdm import trange
 import warnings
 
 from .info import *
@@ -11,11 +11,11 @@ class MonteCarlo(ABC):
     An interface for all Monte Carlo algorithms.
     """
 
-    def __init__(self, q: Q, gamma: float, alpha: float, iterations: int):
+    @abstractmethod
+    def __init__(self, q: Q, gamma: float, alpha: float):
         self.q = q
         self.gamma = gamma
         self.alpha = alpha
-        self.iterations = iterations
 
     @abstractmethod
     def run(self, game: Game) -> None:
@@ -27,24 +27,24 @@ class IncrMonteCarlo(MonteCarlo):
     A incremental Monte Carlo algorithm.
     """
 
-    def __init__(self, q: Q = None, gamma: float = 1.0, alpha: float = 0.05, iterations: int = 1000):
-        super().__init__(q if q else Q(), gamma, alpha, iterations)
+    def __init__(self, q: Q = None, gamma: float = 1.0, alpha: float = 0.05):
+        super().__init__(q if q else Q(), gamma, alpha)
 
-    def run(self, game: Game) -> Q:
+    def run(self, game: Game, iterations: int = 1000) -> Q:
 
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         print("Starting Incremental Monte Carlo...")
 
-        if os.path.exists("game_log.txt"):
-            os.remove("game_log.txt")
+        if os.path.exists("game_log_mc.txt"):
+            os.remove("game_log_mc.txt")
 
-        for i in trange(self.iterations):
+        for i in trange(iterations):
 
-            # Log wins, draws and losses for each round of the game
-            game.play(self.q, self.gamma)
+            # Play a game
+            game.play(GreedyPolicy(), self.q, self.gamma)
 
             # Log game information in a text file
-            Info.log_game(game, i)
+            Info.log_game(game, i, "mc")
 
             # What (state, action) pairs showed up in this game.
             # We will use the `every occurrence` approach, meaning that
@@ -52,8 +52,8 @@ class IncrMonteCarlo(MonteCarlo):
             occurrences: dict[tuple[PlayerState, Action], list[float]] = dict()
 
             for player in game.players:
-                for round in player.experiences:
-                    for part in player.experiences[round]:
+                for rnd in player.experiences:
+                    for part in player.experiences[rnd]:
                         s, a, g = part[0], part[1], part[2]
                         if (s, a) not in occurrences:
                             occurrences[(s, a)] = list()
@@ -63,7 +63,7 @@ class IncrMonteCarlo(MonteCarlo):
                     # All experiences of this game are
                     # transferred to `occurrences` dictionary, and we
                     # clear experiences for the next game.
-                    player.experiences[round].clear()
+                    player.experiences[rnd].clear()
 
             for sa in occurrences:
                 average = sum(occurrences[sa]) / len(occurrences[sa])

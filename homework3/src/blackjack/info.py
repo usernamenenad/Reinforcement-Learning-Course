@@ -7,7 +7,7 @@ from .blackjack import *
 class Info:
 
     @staticmethod
-    def draw_experience(game: Game, round: int) -> None:
+    def draw_experience(game: Game, rnd: int) -> None:
 
         players = copy(game.players)
 
@@ -22,14 +22,14 @@ class Info:
 
             g = nx.DiGraph()
 
-            for j, exp in enumerate(player.experiences[round].experience):
+            for j, exp in enumerate(player.experiences[rnd].experience):
                 node_labels[j] = exp[0].total
                 node_colors.append("#0000ff")
 
             node_labels[len(node_labels)] = "T"
             node_colors.append("#ff0000")
 
-            for j, exp in enumerate(player.experiences[round].experience):
+            for j, exp in enumerate(player.experiences[rnd].experience):
                 edge_labels[(j, j + 1)] = exp[1].name
 
             g.add_nodes_from(node_labels)
@@ -70,9 +70,9 @@ class Info:
 
         for player in players:
             logger += f"{player.name}'s experience:\r\n"
-            for round in player.experiences:
+            for rnd in player.experiences:
                 to_print = list()
-                for experience in player.experiences[round]:
+                for experience in player.experiences[rnd]:
                     to_print.append(
                         {
                             "State": experience[0],
@@ -86,17 +86,17 @@ class Info:
         return logger
 
     @staticmethod
-    def log_game(game: Game, game_number: int = 0):
+    def log_game(game: Game, game_number: int, nof: str):
         to_log = f"[Game {game_number}]:\r\n\r\n" + Info.log_experiences(game.players) + "\r\n"
-        with open("game_log.txt", "a") as gl:
+        with open(f"game_log_{nof}.txt", "a") as gl:
             gl.write(to_log)
 
     @staticmethod
-    def log_optimal_policy(q: Q):
+    def log_optimal_policy(q: Q, policy: str):
         to_log = []
 
         for state in q.all_states:
-            action = GreedyPolicy.act(q, state)
+            action = GreedyPolicy().act(q, state)
             to_log.append(
                 {
                     "State": state,
@@ -104,5 +104,5 @@ class Info:
                 }
             )
 
-        with open("optimal_policy_log.txt", "w") as opl:
+        with open(f"optimal_policy_{policy}.txt", "w") as opl:
             opl.write("Optimal policy: \r\n\r\n" + tabulate(to_log, headers="keys", tablefmt="rst"))
