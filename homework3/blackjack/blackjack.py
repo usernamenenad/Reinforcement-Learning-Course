@@ -53,7 +53,7 @@ class Game(Observable):
                 if action == Action.HOLD:
                     # Determine if this is the new max_total.
                     player.log_experience(
-                        rnd, [deepcopy(player.state), action, 0.0])
+                        rnd, [deepcopy(player.state), action, 0.0, None])
                     max_total = player.state.total if player.state.total > max_total else max_total
                     break
 

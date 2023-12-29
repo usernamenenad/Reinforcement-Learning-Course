@@ -1,16 +1,13 @@
 *.zip
 *.rar
+optimal_policy_*
+game_log_*
 
-.ipynb_checkpoints
 .venv
 .idea
 .vscode
 __pycache__
-dbdir
-Tekstovi
-
+.pytest_cache
 poetry.lock
 pyproject.toml
 
-optimal_policy_*
-game_log_*

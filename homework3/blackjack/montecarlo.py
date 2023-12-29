@@ -1,9 +1,7 @@
 import os.path
-import time
-
-from tqdm import trange
-from alive_progress import alive_bar
 import warnings
+
+from alive_progress import alive_bar
 
 from .info import *
 
@@ -18,7 +16,6 @@ class MonteCarlo(ABC):
         self.q = q
         self.gamma = gamma
         self.alpha = alpha
-        print("just testing")
 
     @abstractmethod
     def run(self, game: Game) -> None:

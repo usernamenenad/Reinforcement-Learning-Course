@@ -11,7 +11,7 @@ class Info:
 
         players = copy(game.players)
 
-        _, axes = plt.subplots(nrows=len(players), ncols=1, figsize=(20, 50))
+        _, axes = plt.subplots(nrows=len(players), ncols=1, figsize=(20, 20))
         axes = axes.flatten()
 
         for i, player in enumerate(players):
@@ -30,7 +30,10 @@ class Info:
             node_colors.append("#ff0000")
 
             for j, exp in enumerate(player.experiences[rnd].experience):
-                edge_labels[(j, j + 1)] = exp[1].name
+                label = exp[1].name
+                if exp[3]:
+                    label += f", {exp[3]}"
+                edge_labels[(j, j + 1)] = label
 
             g.add_nodes_from(node_labels)
             g.add_edges_from(edge_labels)
@@ -39,24 +42,27 @@ class Info:
 
             nx.draw_networkx_nodes(g,
                                    pos=pos,
-                                   node_size=2000,
+                                   node_size=500,
                                    node_color=node_colors,
                                    ax=axes[i])
 
             nx.draw_networkx_labels(g,
                                     pos=pos,
                                     labels=node_labels,
-                                    font_size=15,
+                                    font_color="w",
+                                    font_size=11,
                                     ax=axes[i])
 
             nx.draw_networkx_edges(g,
                                    pos=pos,
+                                   width=2,
+                                   style="dashed",
                                    ax=axes[i])
 
             nx.draw_networkx_edge_labels(g,
                                          pos=pos,
                                          edge_labels=edge_labels,
-                                         font_size=20,
+                                         font_size=12,
                                          ax=axes[i])
 
             axes[i].set_title(f"{player.name}'s experience")
@@ -77,7 +83,7 @@ class Info:
                         {
                             "State": experience[0],
                             "Action": experience[1].name,
-                            "Drew card": experience[3].number if len(experience) == 4 else "-",
+                            "Drew card": experience[3].number if experience[3] else "-",
                             "Gain": experience[2]
                         }
                     )
