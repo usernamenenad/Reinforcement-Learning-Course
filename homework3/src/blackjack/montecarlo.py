@@ -16,6 +16,7 @@ class MonteCarlo(ABC):
         self.q = q
         self.gamma = gamma
         self.alpha = alpha
+        print("just testing")
 
     @abstractmethod
     def run(self, game: Game) -> None:
