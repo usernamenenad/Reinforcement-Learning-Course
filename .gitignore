@@ -11,3 +11,6 @@ Tekstovi
 
 poetry.lock
 pyproject.toml
+
+optimal_policy_*
+game_log_*
