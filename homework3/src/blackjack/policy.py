@@ -3,6 +3,8 @@ from random import random
 
 from .utils import *
 
+print("dummyp")
+
 
 class Policy(ABC):
 

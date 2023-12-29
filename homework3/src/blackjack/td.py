@@ -6,6 +6,8 @@ from observer import Observer
 
 from .info import *
 
+print("dummyp")
+
 
 class TD(ABC):
 
@@ -39,7 +41,8 @@ class QLearning(TD, Observer):
         else:
             v_plus = 0
 
-        self.q[s, a] = (1 - self.alpha) * self.q[s, a] + self.alpha * (r + self.gamma * v_plus)
+        self.q[s, a] = (1 - self.alpha) * self.q[s, a] + \
+            self.alpha * (r + self.gamma * v_plus)
 
     def run(self, game: Game, iterations: int) -> Q:
         warnings.filterwarnings("ignore", category=DeprecationWarning)

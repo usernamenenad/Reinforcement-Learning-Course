@@ -3,6 +3,8 @@ import networkx as nx
 
 from .blackjack import *
 
+print("dummyp")
+
 
 class Info:
 
@@ -81,13 +83,15 @@ class Info:
                             "Gain": experience[2]
                         }
                     )
-                logger += tabulate(to_print, headers="keys", tablefmt="rst") + "\r\n\r\n"
+                logger += tabulate(to_print, headers="keys",
+                                   tablefmt="rst") + "\r\n\r\n"
 
         return logger
 
     @staticmethod
     def log_game(game: Game, game_number: int, nof: str):
-        to_log = f"[Game {game_number}]:\r\n\r\n" + Info.log_experiences(game.players) + "\r\n"
+        to_log = f"[Game {game_number}]:\r\n\r\n" + \
+            Info.log_experiences(game.players) + "\r\n"
         with open(f"game_log_{nof}.txt", "a") as gl:
             gl.write(to_log)
 
@@ -105,4 +109,5 @@ class Info:
             )
 
         with open(f"optimal_policy_{policy}.txt", "w") as opl:
-            opl.write("Optimal policy: \r\n\r\n" + tabulate(to_log, headers="keys", tablefmt="rst"))
+            opl.write("Optimal policy: \r\n\r\n" +
+                      tabulate(to_log, headers="keys", tablefmt="rst"))

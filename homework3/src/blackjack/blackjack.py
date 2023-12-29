@@ -5,6 +5,8 @@ from .policy import *
 
 from observer import Observable
 
+print("dummyp")
+
 
 class Game(Observable):
     """
@@ -52,12 +54,14 @@ class Game(Observable):
 
                 if action == Action.HOLD:
                     # Determine if this is the new max_total.
-                    player.log_experience(rnd, [deepcopy(player.state), action, 0.0])
+                    player.log_experience(
+                        rnd, [deepcopy(player.state), action, 0.0])
                     max_total = player.state.total if player.state.total > max_total else max_total
                     break
 
                 card = self.__deck.draw()
-                player.log_experience(rnd, [deepcopy(player.state), action, 0.0, card])
+                player.log_experience(
+                    rnd, [deepcopy(player.state), action, 0.0, card])
                 old_state = deepcopy(player.state)
                 player.update_total(card)
 
