@@ -4,8 +4,6 @@ from random import shuffle
 
 from tabulate import tabulate
 
-print("dummyp")
-
 
 class CardSuit(StrEnum):
     CLUB = "♣"

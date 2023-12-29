@@ -3,8 +3,6 @@ import networkx as nx
 
 from .blackjack import *
 
-print("dummyp")
-
 
 class Info:
 
@@ -91,7 +89,7 @@ class Info:
     @staticmethod
     def log_game(game: Game, game_number: int, nof: str):
         to_log = f"[Game {game_number}]:\r\n\r\n" + \
-            Info.log_experiences(game.players) + "\r\n"
+                 Info.log_experiences(game.players) + "\r\n"
         with open(f"game_log_{nof}.txt", "a") as gl:
             gl.write(to_log)
 

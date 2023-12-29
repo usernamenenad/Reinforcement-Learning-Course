@@ -1,7 +1,6 @@
 from blackjack import *
 
 import unittest
-print("dummyp")
 
 q: Q = Q()
 

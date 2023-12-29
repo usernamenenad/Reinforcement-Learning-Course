@@ -5,8 +5,6 @@ import warnings
 
 from .info import *
 
-print("dummyp")
-
 
 class MonteCarlo(ABC):
     """

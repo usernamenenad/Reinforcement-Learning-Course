@@ -5,8 +5,6 @@ from .policy import *
 
 from observer import Observable
 
-print("dummyp")
-
 
 class Game(Observable):
     """
