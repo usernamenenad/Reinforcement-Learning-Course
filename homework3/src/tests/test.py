@@ -59,6 +59,7 @@ class TestBlackjack(unittest.TestCase):
         ql.run(game, 20000)
 
         Info.log_optimal_policy(q, "ql")
+        print(q)
 
         print(q)
 
