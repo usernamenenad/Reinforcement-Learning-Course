@@ -1,7 +1,7 @@
 import warnings
 import os.path
 
-from tqdm import trange
+from alive_progress import alive_bar
 from observer import Observer
 
 from .info import *
@@ -49,16 +49,19 @@ class QLearning(TD, Observer):
         if os.path.exists("game_log_ql.txt"):
             os.remove("game_log_ql.txt")
 
-        for i in trange(iterations):
-            # Play a game
-            game.play(EpsilonGreedyPolicy(epsilon=0.3), self.q, self.gamma)
+        with alive_bar(total=iterations) as bar:
+            for i in range(iterations):
+                # Play a game
+                game.play(EpsilonGreedyPolicy(epsilon=0.3), self.q, self.gamma)
 
-            # Log game information in a text file
-            Info.log_game(game, i, "ql")
+                # Log game information in a text file
+                Info.log_game(game, i, "ql")
 
-            for player in game.players:
-                for rnd in player.experiences:
-                    player.experiences[rnd].clear()
+                for player in game.players:
+                    for rnd in player.experiences:
+                        player.experiences[rnd].clear()
+
+                bar()
 
         print("Finished Q-Learning!")
         return self.q
