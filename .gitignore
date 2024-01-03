@@ -1,13 +1,13 @@
 *.zip
 *.rar
-optimal_policy_*
-game_log_*
 
 .venv
 .idea
 .vscode
-__pycache__
 .pytest_cache
+
+logs
+__pycache__
+
 poetry.lock
 pyproject.toml
-
