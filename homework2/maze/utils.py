@@ -15,7 +15,11 @@ class State:
         return hash(self.__position.__hash__)
 
     def __eq__(self, other):
-        return self.__position == other.__position if isinstance(other, State) else self.__position == list(other)
+        return (
+            self.__position == other.__position
+            if isinstance(other, State)
+            else self.__position == list(other)
+        )
 
     def __str__(self):
         return str(self.__position)
@@ -136,12 +140,11 @@ class WallCell(Cell):
 
 
 class CellGen:
-
     def __call__(self, specs: list[tuple[float, Callable]]) -> Cell:
         return choices(
             population=[call for _, call in specs],
             weights=[weight for weight, _ in specs],
-            k=1
+            k=1,
         )[0]()
 
 
@@ -171,5 +174,5 @@ ad_map: dict[Action, Direction] = {
     Action.ACTION_A1: Direction.RIGHT,
     Action.ACTION_A2: Direction.LEFT,
     Action.ACTION_A3: Direction.UP,
-    Action.ACTION_A4: Direction.DOWN
+    Action.ACTION_A4: Direction.DOWN,
 }

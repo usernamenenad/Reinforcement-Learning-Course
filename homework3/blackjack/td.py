@@ -8,7 +8,6 @@ from .info import *
 
 
 class TD(ABC):
-
     @abstractmethod
     def __init__(self, q: Q, gamma: float, alpha: float):
         self.q = q
@@ -39,7 +38,9 @@ class QLearning(TD, Observer):
         else:
             v_plus = 0
 
-        self.q[s, a] = (1 - self.alpha) * self.q[s, a] + self.alpha * (r + self.gamma * v_plus)
+        self.q[s, a] = (1 - self.alpha) * self.q[s, a] + self.alpha * (
+            r + self.gamma * v_plus
+        )
 
     def run(self, game: Game, iterations: int) -> Q:
         warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -67,7 +68,6 @@ class QLearning(TD, Observer):
 
 
 class SARSA(TD, Observer):
-
     def __init__(self, q: Q = None, gamma: float = 1.0, alpha: float = 0.05):
         super().__init__(q if q else Q(), gamma, alpha)
 
@@ -83,7 +83,9 @@ class SARSA(TD, Observer):
         else:
             q_plus = 0.0
 
-        self.q[s, a] = (1 - self.gamma) * self.q[s, a] + self.gamma * (r + self.gamma * q_plus)
+        self.q[s, a] = (1 - self.gamma) * self.q[s, a] + self.gamma * (
+            r + self.gamma * q_plus
+        )
 
     def run(self, game: Game, iterations: int):
         warnings.filterwarnings("ignore", category=DeprecationWarning)

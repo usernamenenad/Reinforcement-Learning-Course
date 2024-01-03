@@ -44,8 +44,7 @@ def sarsa_func():
     Info.log_q_values(q_sarsa, "sarsa")
 
 
-if __name__ == '__main__':
-
+if __name__ == "__main__":
     if not os.path.exists("logs"):
         os.mkdir("logs")
 

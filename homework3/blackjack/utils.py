@@ -11,7 +11,7 @@ class CardSuit(StrEnum):
     HEART = "♥"
     SPADE = "♠"
 
-    def __str__(self):
+    def __repr__(self):
         return self
 
 
@@ -30,7 +30,7 @@ class CardNumber(Enum):
     DAME = 13
     KING = 14
 
-    def __str__(self):
+    def __repr__(self):
         match self:
             case CardNumber.ACE:
                 return "A"
@@ -51,16 +51,19 @@ class Card:
 
     @property
     def value(self):
-        if self.number == CardNumber.JACK or self.number == CardNumber.DAME or self.number == CardNumber.KING:
+        if (
+            self.number == CardNumber.JACK
+            or self.number == CardNumber.DAME
+            or self.number == CardNumber.KING
+        ):
             return 10
         return self.number.value
 
-    def __str__(self):
+    def __repr__(self):
         return f"{repr(self.number)}{repr(self.suit)}"
 
 
 class CardDeck:
-
     def __init__(self, no_sets=5):
         self.__no_sets = no_sets
         self.__deck: list[Card] = list()
@@ -77,9 +80,9 @@ class CardDeck:
         """
         Used for (RE)creating and SHUFFLING the deck.
         """
-        self.__deck = self.__no_sets * [Card(number=n, suit=s)
-                                        for n in iter(CardNumber)
-                                        for s in iter(CardSuit)]
+        self.__deck = self.__no_sets * [
+            Card(number=n, suit=s) for n in iter(CardNumber) for s in iter(CardSuit)
+        ]
 
         shuffle(self.__deck)
 
@@ -106,7 +109,6 @@ class DealerState(State):
 
 @dataclass
 class PlayerState(State):
-
     def __hash__(self):
         return hash(astuple(self))
 
@@ -117,7 +119,6 @@ class Action(Enum):
 
 
 class Experience:
-
     @property
     def experience(self) -> list[list[State | Action | float | Card]]:
         return self.__experience
@@ -138,13 +139,7 @@ class Experience:
     def __str__(self):
         to_print = list()
         for exp in self.__experience:
-            to_print.append(
-                {
-                    "State": exp[0],
-                    "Action": exp[1],
-                    "Gain": exp[2]
-                }
-            )
+            to_print.append({"State": exp[0], "Action": exp[1], "Gain": exp[2]})
 
         return tabulate(to_print, headers="keys", tablefmt="rst") + "\r\n"
 
@@ -179,7 +174,6 @@ class Q:
     """
 
     def __init__(self):
-
         self.all_states: list[State] = list()
         for total in range(4, 22):
             if total not in range(4, 12):
@@ -191,9 +185,7 @@ class Q:
         self.all_actions: list[Action] = [Action.HOLD, Action.HIT]
 
         self.q: dict[tuple[State, Action], float] = {
-            (s, a): 0.0
-            for s in self.all_states
-            for a in self.all_actions
+            (s, a): 0.0 for s in self.all_states for a in self.all_actions
         }
 
     def __getitem__(self, key: tuple[State, Action]) -> float:
@@ -208,20 +200,9 @@ class Q:
     def __str__(self):
         to_repr = []
         for s, a in self.q:
-            to_repr.append(
-                {
-                    "State": s,
-                    "Action": a,
-                    "Gain": self.q[(s, a)]
-                }
-            )
+            to_repr.append({"State": s, "Action": a, "Value": self.q[(s, a)]})
 
         return tabulate(to_repr, headers="keys", tablefmt="rst")
 
     def determine_v(self, s: State):
         return max([self.q[s, a] for a in self.all_actions])
-
-
-class Estimator(Enum):
-    MonteCarlo = auto()
-    TemporalDifference = auto()

@@ -46,8 +46,11 @@ class GreedyPolicyV(GreedyPolicy):
         for a in actions:
             news = env(s, a)
             v_sum = sum(
-                [new["probability"] * (new["reward"] + env.gamma * env.v[new["new_state"]])
-                 for new in news]
+                [
+                    new["probability"]
+                    * (new["reward"] + env.gamma * env.v[new["new_state"]])
+                    for new in news
+                ]
             )
             vpa.append((v_sum, a))
 

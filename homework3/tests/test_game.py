@@ -4,7 +4,7 @@ from blackjack import *
 def test_game():
     if not os.path.exists("logs"):
         os.mkdir("logs")
-        
+
     no_players = 3
     players = [Player() for _ in range(no_players)]
     game = Game(players)

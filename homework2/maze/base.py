@@ -1,5 +1,5 @@
 from random import randint, choice
-from typing import Dict, Any
+from typing import Any
 
 from .utils import *
 
@@ -14,18 +14,16 @@ class MazeBase(ABC):
         return self.__nodes
 
     @property
-    def connections(self) -> Dict[State, dict[Direction, State]]:
+    def connections(self) -> dict[State, dict[Direction, State]]:
         return self.__connections
 
     def __init__(self, positions: list[list[int]], specs: list[tuple[float, Callable]]):
         self.__nodes: dict[State, Cell] = {
-            State(position): CellGen()(specs)
-            for position in positions
+            State(position): CellGen()(specs) for position in positions
         }
 
-        self.__connections: Dict[State, dict[Direction, State]] = {
-            node: {}
-            for node in self.__nodes
+        self.__connections: dict[State, dict[Direction, State]] = {
+            node: {} for node in self.__nodes
         }
 
     def __getitem__(self, state: Any) -> Cell:
@@ -40,9 +38,11 @@ class MazeBase(ABC):
         cells will agent teleport when stepped onto teleport cell.
         """
 
-        valid_teleports = \
-            [cell for cell in self.__nodes.values() if
-             not isinstance(cell, WallCell) and not isinstance(cell, TeleportCell)]
+        valid_teleports = [
+            cell
+            for cell in self.__nodes.values()
+            if not isinstance(cell, WallCell) and not isinstance(cell, TeleportCell)
+        ]
 
         for node in self.__nodes:
             cell = self.__nodes[node]
@@ -69,11 +69,7 @@ class MazeGraph(MazeBase):
     """
 
     def __init__(self, size: int, specs: list[tuple[float, Callable]]):
-
-        super().__init__(
-            positions=[[i] for i in range(size)],
-            specs=specs
-        )
+        super().__init__(positions=[[i] for i in range(size)], specs=specs)
 
         self.set_maze()
 
@@ -121,14 +117,11 @@ class MazeBoard(MazeBase):
         return self.__rows_no, self.__cols_no
 
     def __init__(self, size: tuple[int, int], specs: list[tuple[float, Callable]]):
-
         self.__rows_no, self.__cols_no = size
 
         super().__init__(
-            positions=[[i, j]
-                       for i in range(size[0])
-                       for j in range(size[1])],
-            specs=specs
+            positions=[[i, j] for i in range(size[0]) for j in range(size[1])],
+            specs=specs,
         )
 
         self.set_maze()
@@ -170,9 +163,7 @@ class MazeBoard(MazeBase):
         self.set_teleport()
 
         for node in self.nodes:
-
             for direction in Direction.get_all_directions():
-
                 match direction:
                     case Direction.RIGHT:
                         dc = self.__right(node)

@@ -77,25 +77,29 @@ class Info:
 
         pos = nx.shell_layout(g)
         cmap = plt.cm.RdBu
-        ew = nx.get_edge_attributes(g, 'weight')
+        ew = nx.get_edge_attributes(g, "weight")
         weights = [ew[edge] for edge in ew]
         norm = plt.Normalize(min(weights), max(weights))
-        sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(min(weights), max(weights)))
+        sm = plt.cm.ScalarMappable(
+            cmap=cmap, norm=plt.Normalize(min(weights), max(weights))
+        )
         sm.set_array([])
         cbar = plt.colorbar(sm, ax=ax)
         ec = [cmap(norm(weight)) for weight in weights]
 
-        nx.draw(g,
-                pos=pos,
-                labels=labels,
-                edge_color=ec,
-                width=2,
-                font_size=10,
-                with_labels=True,
-                node_color=[colors[node] for node in colors],
-                node_size=2000,
-                edgecolors='black',
-                ax=ax)
+        nx.draw(
+            g,
+            pos=pos,
+            labels=labels,
+            edge_color=ec,
+            width=2,
+            font_size=6,
+            with_labels=True,
+            node_color=[colors[node] for node in colors],
+            node_size=750,
+            edgecolors="black",
+            ax=ax,
+        )
 
         return g, colors
 
@@ -111,7 +115,9 @@ class Info:
                 labels[node] = str(len(labels)) + f", {env.v[node]:.1f}"
             else:
                 if isinstance(cell, TeleportCell):
-                    labels[node] = f"{len(labels)}, {env.base.find_position(cell.teleport_to)}"
+                    labels[
+                        node
+                    ] = f"{len(labels)}, {env.base.find_position(cell.teleport_to)}"
                 elif isinstance(cell, WallCell):
                     labels[node] = str(len(labels))
 
@@ -119,20 +125,19 @@ class Info:
 
     @staticmethod
     def __draw_graph_policy(env: MazeEnvironment, policy: Policy, ax=None):
-
         labels = {}
 
         for s in env.states:
             if not env.base[s].is_terminal:
                 a = policy.act(s, env, env.actions)
                 if a == Action.ACTION_A1:
-                    labels[s] = 'A1'
+                    labels[s] = "A1"
                 elif a == Action.ACTION_A2:
-                    labels[s] = 'A2'
+                    labels[s] = "A2"
                 elif a == Action.ACTION_A3:
-                    labels[s] = 'A3'
+                    labels[s] = "A3"
                 else:
-                    labels[s] = 'A4'
+                    labels[s] = "A4"
 
         Info.__draw_graph(env.base, labels, ax)
 
@@ -161,22 +166,28 @@ class Info:
             Info.__draw_graph_policy(env, policy, ax)
 
     @staticmethod
-    def print_probabilities(env: MazeEnvironment):
-        to_print = list()
+    def log_probabilities(env: MazeEnvironment, nof: str):
+        to_log = list()
         for s, a in env.probabilities:
             news = env(s, a)
             for new in news:
-                to_print.append(
+                to_log.append(
                     {
-                        "State": s.value,
-                        "Action": a.name,
-                        "Direction": new["Direction"].name,
-                        "Next state": new["New state"].value,
-                        "Reward": new["Reward"],
+                        "State": s,
+                        "Action": a,
+                        "Direction": new["direction"],
+                        "Next state": new["new_state"],
+                        "Reward": new["reward"],
                         "Probability(s+, r | s, a)": env.probabilities[(s, a)][
-                            new["Direction"]
+                            new["direction"]
                         ],
                     }
                 )
 
-        print(tabulate(to_print, "keys", "rst"))
+        with open(f"./logs/probabilities_{nof}.txt", "w") as p:
+            p.write(tabulate(to_log, "keys", "rst"))
+
+    @staticmethod
+    def log_q_values(q: Q, nof: str):
+        with open(f"./logs/q_values_{nof}.txt", "w") as qv:
+            qv.write(q.__str__())

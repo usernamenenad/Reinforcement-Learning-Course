@@ -31,7 +31,6 @@ class IncrMonteCarlo(MonteCarlo):
         super().__init__(q if q else Q(), gamma, alpha)
 
     def run(self, game: Game, iterations: int = 1000) -> Q:
-
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         print("Starting Incremental Monte Carlo...")
 
@@ -67,7 +66,9 @@ class IncrMonteCarlo(MonteCarlo):
 
                 for s, a in occurrences:
                     average = sum(occurrences[s, a]) / len(occurrences[s, a])
-                    self.q[s, a] = (1 - self.alpha) * self.q[s, a] + self.alpha * average
+                    self.q[s, a] = (1 - self.alpha) * self.q[
+                        s, a
+                    ] + self.alpha * average
 
                 bar()
 

@@ -45,7 +45,9 @@ class Agent(ABC):
                         self.__state.total -= 10
                         self.__state.has_ace = False
 
-    def log_experience(self, rnd: int, exp: list[State | Action | float | Card]) -> None:
+    def log_experience(
+        self, rnd: int, exp: list[State | Action | float | Card]
+    ) -> None:
         """
         Used for adding new (State, Action, Gain) pair to the experience.
         """

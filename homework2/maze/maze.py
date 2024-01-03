@@ -1,6 +1,8 @@
 from copy import deepcopy
 from dataclasses import dataclass
 from random import random
+from alive_progress import alive_bar
+from tabulate import tabulate
 
 import numpy as np
 
@@ -15,34 +17,48 @@ class EnvType(Enum):
 @dataclass
 class Probability:
     """
-    Models probability. TODO: Deterministic probabilities.
+    Models probabilities as dataclass.
+    User has the option to set "deterministic" probablities,
+    which means that a certain action has always one and only one direction
+    associated with it, or "stochastic" - all random.
     """
 
-    def __init__(self,
-                 base: MazeBase,
-                 states: list[State],
-                 actions: list[Action],
-                 env_type: EnvType):
-
+    def __init__(
+        self,
+        base: MazeBase,
+        states: list[State],
+        actions: list[Action],
+        env_type: EnvType,
+    ):
         self.__probability: dict[tuple[State, Action], dict[Direction, float]] = dict()
         for s in states:
             for a in actions:
                 directions = base.get_directions(s)
 
-                probs = np.round(np.random.dirichlet(np.ones(len(directions)), size=1)[0], 3).tolist()
+                probs = np.round(
+                    np.random.dirichlet(np.ones(len(directions)), size=1)[0], 3
+                ).tolist()
                 self.__probability[(s, a)] = dict()
 
                 match env_type:
                     case EnvType.DETERMINISTIC:
-                        probs = [1.0 if direction == ad_map[a] else 0.0 for direction in directions]
+                        probs = [
+                            1.0 if direction == ad_map[a] else 0.0
+                            for direction in directions
+                        ]
                     case EnvType.STOCHASTIC:
-                        probs = np.round(np.random.dirichlet(np.ones(len(directions)), size=1)[0], 3).tolist()
+                        probs = np.round(
+                            np.random.dirichlet(np.ones(len(directions)), size=1)[0], 3
+                        ).tolist()
 
                 for i, direction in enumerate(directions):
                     self.__probability[(s, a)][direction] = probs[i]
 
     def __getitem__(self, key: tuple[State, Action]) -> dict[Direction, float]:
         return self.__probability[key]
+
+    def __iter__(self):
+        return iter(self.__probability)
 
 
 @dataclass
@@ -67,19 +83,22 @@ class Q:
     def probabilities(self) -> Probability:
         return self.__probabilities
 
-    def __init__(self,
-                 base: MazeBase,
-                 states: list[State],
-                 actions: list[Action],
-                 env_type: EnvType,
-                 probabilities: Probability = None):
+    def __init__(
+        self,
+        base: MazeBase,
+        states: list[State],
+        actions: list[Action],
+        env_type: EnvType,
+        probabilities: Probability = None,
+    ):
         self.__base = base
         self.__states = states
         self.__actions = actions
-        self.__probabilities: Probability = probabilities if probabilities else Probability(base,
-                                                                                            self.__states,
-                                                                                            self.__actions,
-                                                                                            env_type)
+        self.__probabilities: Probability = (
+            probabilities
+            if probabilities
+            else Probability(base, self.__states, self.__actions, env_type)
+        )
 
         self.__q: dict[tuple[State, Action], float] = {
             (s, a): -10 * random() if not base[s].is_terminal else 0.0
@@ -96,6 +115,13 @@ class Q:
     def __iter__(self):
         return iter(self.__q)
 
+    def __str__(self):
+        to_repr = []
+        for s, a in self.__q:
+            to_repr.append({"State": s, "Action": a, "Value": self.__q[(s, a)]})
+
+        return tabulate(to_repr, headers="keys", tablefmt="rst")
+
 
 @dataclass
 class V:
@@ -109,10 +135,7 @@ class V:
 
     def __init__(self, q: Q):
         self.__q: Q = q
-        self.__v: dict[State, float] = {
-            s: self.determine(s)
-            for s in self.__q.states
-        }
+        self.__v: dict[State, float] = {s: self.determine(s) for s in self.__q.states}
 
     def __getitem__(self, key: State) -> float:
         return self.__v[key]
@@ -128,8 +151,10 @@ class V:
         for a in self.__q.actions:
             q_sum.append(
                 sum(
-                    [self.__q.probabilities[(s, a)][direction] * self.__q[(s, a)]
-                     for direction in self.__q.base.get_directions(s)]
+                    [
+                        self.__q.probabilities[(s, a)][direction] * self.__q[(s, a)]
+                        for direction in self.__q.base.get_directions(s)
+                    ]
                 )
             )
         return max(q_sum)
@@ -180,11 +205,13 @@ class MazeEnvironment:
     def gamma(self) -> float:
         return self.__gamma
 
-    def __init__(self,
-                 base: MazeBase,
-                 actions: list[Action] = None,
-                 env_type: EnvType = EnvType.STOCHASTIC,
-                 gamma: float = 1):
+    def __init__(
+        self,
+        base: MazeBase,
+        actions: list[Action] = None,
+        env_type: EnvType = EnvType.STOCHASTIC,
+        gamma: float = 1,
+    ):
         """
         Initializer for the environment by specifying the underlying
         maze base.
@@ -196,7 +223,8 @@ class MazeEnvironment:
         self.__states: list[State] = [
             node
             for node in self.base
-            if self.base[node].is_steppable and not isinstance(self.__base[node], TeleportCell)
+            if self.base[node].is_steppable
+            and not isinstance(self.__base[node], TeleportCell)
         ]
 
         self.__actions: list[Action] = actions if actions else Action.get_all_actions()
@@ -244,21 +272,29 @@ class MazeEnvironment:
                     mdp_ret = self(s, a)
                     # q(s, a) = sum(p(s^+, r | s, a)(r + gamma * max_a^+{q(s^+, a^+)}))
                     self.__q[(s, a)] = sum(
-                        [mdp["probability"] * (mdp["reward"] + self.gamma * self.__v.determine(mdp["new_state"]))
-                         for mdp in mdp_ret]
+                        [
+                            mdp["probability"]
+                            * (
+                                mdp["reward"]
+                                + self.gamma * self.__v.determine(mdp["new_state"])
+                            )
+                            for mdp in mdp_ret
+                        ]
                     )
                 self.__v[s] = self.__v.determine(s)
 
-    def compute_values(self, eps: float = 0.01, iters: int = 1000) -> int:
+    def compute_values(self, eps: float = 0.01, iterations: int = 1000) -> int:
         """
         Method for converging Q and V values using Bellman's equations.
         """
-        for k in range(iters):
-            ov = deepcopy(self.__q)
-            self.__update_values()
-            err = max([abs(self.__q[sa] - ov[sa])
-                       for sa in self.__q])
-            if err < eps:
-                return k
+        with alive_bar(iterations) as bar:
+            for k in range(iterations):
+                ov = deepcopy(self.__q)
+                self.__update_values()
+                err = max([abs(self.__q[sa] - ov[sa]) for sa in self.__q])
+                if err < eps:
+                    return k
 
-        return iters
+                bar()
+
+        return iterations
