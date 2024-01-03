@@ -45,6 +45,10 @@ def sarsa_func():
 
 
 if __name__ == '__main__':
+
+    if not os.path.exists("logs"):
+        os.mkdir("logs")
+
     p1 = mp.Process(target=imc_func)
     p2 = mp.Process(target=ql_func)
     p3 = mp.Process(target=sarsa_func)

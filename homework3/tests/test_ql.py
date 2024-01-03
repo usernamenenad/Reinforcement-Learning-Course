@@ -2,6 +2,9 @@ from blackjack import *
 
 
 def test_q_learning():
+    if not os.path.exists("logs"):
+        os.mkdir("logs")
+
     Player.no_players = 0
     no_players = 2
     players = [Player() for _ in range(no_players)]
@@ -12,4 +15,4 @@ def test_q_learning():
     q = ql.run(game, 20000)
 
     Info.log_optimal_policy(q, "ql")
-    Info.log_optimal_policy(q, "ql")
+    Info.log_q_values(q, "ql")

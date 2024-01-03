@@ -2,6 +2,9 @@ from blackjack import *
 
 
 def test_sarsa():
+    if not os.path.exists("logs"):
+        os.mkdir("logs")
+
     Player.no_players = 0
     no_players = 2
     players = [Player() for _ in range(no_players)]
@@ -12,4 +15,4 @@ def test_sarsa():
     q = sarsa.run(game, 20000)
 
     Info.log_optimal_policy(q, "sarsa")
-    Info.log_optimal_policy(q, "sarsa")
+    Info.log_q_values(q, "sarsa")
