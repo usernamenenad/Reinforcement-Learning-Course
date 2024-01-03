@@ -14,7 +14,7 @@ class Policy(ABC):
 class RandomPolicy(Policy):
 
     def act(self, q: Q, state: State) -> Action:
-        return Action.HIT if random() < 0.5 else Action.HOLD
+        return Action.HIT if random() > 0.5 else Action.HOLD
 
 
 class GreedyPolicy(Policy):
@@ -35,4 +35,4 @@ class EpsilonGreedyPolicy(Policy):
         self.epsilon = epsilon
 
     def act(self, q: Q, state: State) -> Action:
-        return GreedyPolicy().act(q, state) if random() < self.epsilon else RandomPolicy().act(q, state)
+        return GreedyPolicy().act(q, state) if random() > self.epsilon else RandomPolicy().act(q, state)

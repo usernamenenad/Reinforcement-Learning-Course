@@ -27,13 +27,13 @@ class Agent(ABC):
         self.__experiences: dict[int, Experience] = dict()
         self.__name = name
 
-    def __repr__(self):
+    def __str__(self):
         return self.__name
 
     def update_total(self, card: Card) -> None:
         match card.number:
             case CardNumber.ACE:
-                if self.__state.total + card.value <= 21 and not self.__state.has_ace:
+                if self.__state.total + 11 <= 21 and not self.__state.has_ace:
                     self.__state.total += 11
                     self.__state.has_ace = True
                 else:

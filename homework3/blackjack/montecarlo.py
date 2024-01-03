@@ -35,16 +35,16 @@ class IncrMonteCarlo(MonteCarlo):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
         print("Starting Incremental Monte Carlo...")
 
-        if os.path.exists("game_log_mc.txt"):
-            os.remove("game_log_mc.txt")
+        if os.path.exists("game_log_imc.txt"):
+            os.remove("game_log_imc.txt")
 
         with alive_bar(total=iterations) as bar:
             for i in range(iterations):
                 # Play a game
-                game.play(GreedyPolicy(), self.q, self.gamma)
+                game.play(EpsilonGreedyPolicy(epsilon=0.1), self.q, self.gamma)
 
                 # Log game information in a text file
-                Info.log_game(game, i, "mc")
+                Info.log_game(game, i, "imc")
 
                 # What (state, action) pairs showed up in this game.
                 # We will use the `every occurrence` approach, meaning that
@@ -65,9 +65,9 @@ class IncrMonteCarlo(MonteCarlo):
                         # clear experiences for the next game.
                         player.experiences[rnd].clear()
 
-                for sa in occurrences:
-                    average = sum(occurrences[sa]) / len(occurrences[sa])
-                    self.q[sa] = self.q[sa] + self.alpha * (average - self.q[sa])
+                for s, a in occurrences:
+                    average = sum(occurrences[s, a]) / len(occurrences[s, a])
+                    self.q[s, a] = (1 - self.alpha) * self.q[s, a] + self.alpha * average
 
                 bar()
 

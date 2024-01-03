@@ -44,22 +44,21 @@ class Game(Observable):
         Returns this round's winners.
         """
         max_total = 0
+        action: Action = None
 
         for player in players:
             while True:
 
-                action = policy.act(q, player.state)
+                action = action if action else policy.act(q, player.state)
 
                 if action == Action.HOLD:
+                    player.log_experience(rnd, [deepcopy(player.state), action, 0.0, None])
                     # Determine if this is the new max_total.
-                    player.log_experience(
-                        rnd, [deepcopy(player.state), action, 0.0, None])
                     max_total = player.state.total if player.state.total > max_total else max_total
                     break
 
                 card = self.__deck.draw()
-                player.log_experience(
-                    rnd, [deepcopy(player.state), action, 0.0, card])
+                player.log_experience(rnd, [deepcopy(player.state), action, 0.0, card])
                 old_state = deepcopy(player.state)
                 player.update_total(card)
 
@@ -69,7 +68,9 @@ class Game(Observable):
                     player.state.total = 0
                     break
                 else:
-                    self.notify(old_state, player.state, action, 0.0)
+                    new_action = policy.act(q, player.state)
+                    self.notify(old_state, action, 0.0, player.state, new_action)
+                    action = new_action
 
         return [player for player in players if player.state.total == max_total]
 
@@ -97,13 +98,13 @@ class Game(Observable):
                 state = deepcopy(winners[0].experiences[rnd][-1][0])
                 action = deepcopy(winners[0].experiences[rnd][-1][1])
                 reward = 1.0
-                self.notify(state, None, action, reward)
+                self.notify(state, action, reward, None, None)
             else:
                 for winner in winners:
                     state = deepcopy(winner.experiences[rnd][-1][0])
                     action = deepcopy(winner.experiences[rnd][-1][1])
                     reward = 0.0
-                    self.notify(state, None, action, reward)
+                    self.notify(state, action, reward, None, None)
 
             # If there are multiple winners, they all get a neutral reward 0 for drawing,
             # which is already default.
@@ -114,7 +115,7 @@ class Game(Observable):
                     state = deepcopy(player.experiences[rnd][-1][0])
                     action = deepcopy(player.experiences[rnd][-1][1])
                     reward = 0.0
-                    self.notify(state, None, action, reward)
+                    self.notify(state, action, reward, None, None)
 
             for player in self.__players:
                 player.reset()

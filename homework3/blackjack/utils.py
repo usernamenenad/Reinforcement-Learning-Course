@@ -11,7 +11,7 @@ class CardSuit(StrEnum):
     HEART = "♥"
     SPADE = "♠"
 
-    def __repr__(self):
+    def __str__(self):
         return self
 
 
@@ -30,7 +30,7 @@ class CardNumber(Enum):
     DAME = 13
     KING = 14
 
-    def __repr__(self):
+    def __str__(self):
         match self:
             case CardNumber.ACE:
                 return "A"
@@ -55,7 +55,7 @@ class Card:
             return 10
         return self.number.value
 
-    def __repr__(self):
+    def __str__(self):
         return f"{repr(self.number)}{repr(self.suit)}"
 
 
@@ -66,7 +66,7 @@ class CardDeck:
         self.__deck: list[Card] = list()
         self.__reshuffle()
 
-    def __repr__(self):
+    def __str__(self):
         s = str()
         for card in self.__deck:
             s += repr(card) + " "
@@ -135,7 +135,7 @@ class Experience:
     def __getitem__(self, index: int):
         return self.__experience[index]
 
-    def __repr__(self):
+    def __str__(self):
         to_print = list()
         for exp in self.__experience:
             to_print.append(
@@ -205,7 +205,7 @@ class Q:
     def __setitem__(self, key: tuple[State, Action], gain: float):
         self.q[key] = gain
 
-    def __repr__(self):
+    def __str__(self):
         to_repr = []
         for s, a in self.q:
             to_repr.append(

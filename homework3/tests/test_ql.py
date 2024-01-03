@@ -12,3 +12,4 @@ def test_q_learning():
     q = ql.run(game, 20000)
 
     Info.log_optimal_policy(q, "ql")
+    Info.log_optimal_policy(q, "ql")

@@ -13,4 +13,5 @@ class TestImc(unittest.TestCase):
         imc = IncrMonteCarlo(q=Q(), gamma=0.9)
         q = imc.run(game, iterations=20000)
 
-        Info.log_optimal_policy(q, "mc")
+        Info.log_optimal_policy(q, "imc")
+        Info.log_optimal_policy(q, "imc")
