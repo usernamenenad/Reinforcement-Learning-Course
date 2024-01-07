@@ -1,1 +1,1 @@
-from .bandit import *
+from .info import *
