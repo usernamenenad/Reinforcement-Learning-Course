@@ -1,6 +1,4 @@
-from dataclasses import dataclass
 from random import random
-from typing import Callable
 
 
 class Bandit:
@@ -22,17 +20,17 @@ class Bandit:
     def span(self, value: float):
         self.__span = value
 
-    def __init__(self, mean: float = 0.0, span: float = 0.0) -> None:
+    def __init__(self, mean: float, span: float):
         self.mean = mean
         self.span = span
-        self.__id = Bandit.id
+        self.id = Bandit.id
         Bandit.id += 1
 
-    def __hash__(self) -> int:
-        return hash(self.__id)
+    def __hash__(self):
+        return hash(self.id)
 
-    def __repr__(self) -> str:
-        return "Bandit" + str(self.__id)
+    def __repr__(self):
+        return f"bandit{self.id}"
 
     def pull_leaver(self) -> float:
         return self.__mean + 2 * self.__span * (random() - 0.5)

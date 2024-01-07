@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-import numpy as np
-from random import choice, random, randint
+from random import choice
 from .utils import *
 
 
@@ -12,7 +11,7 @@ class Policy(ABC):
 
 class GreedyPolicy(Policy):
     def act(self, q: Q) -> Bandit:
-        return max(q, key=q.get)
+        return max(q.q, key=q.q.get)
 
 
 class RandomPolicy(Policy):
@@ -21,12 +20,12 @@ class RandomPolicy(Policy):
 
 
 class EpsGreedyPolicy(Policy):
-    def __init__(self, epsilon: float = 0.05):
+    def __init__(self, epsilon: float = 0.1):
         self.__epsilon = epsilon
 
     def act(self, q: Q) -> Bandit:
         return (
-            RandomPolicy().act(q)
-            if random() < self.__epsilon
-            else GreedyPolicy().act(q)
+            GreedyPolicy().act(q)
+            if random() > self.__epsilon
+            else RandomPolicy().act(q)
         )

@@ -1,4 +1,6 @@
-from dataclasses import dataclass
+from copy import deepcopy
+from typing import Callable
+
 from .policy import *
 
 
@@ -23,16 +25,17 @@ class Environment:
 
     def run(
         self,
+        policy: Policy,
         iterations: int = 10000,
         changes_at: list[int] = None,
         change_law: Callable[..., tuple[float, float]] = None,
         alpha: float = 0.1,
-        policy: Policy = EpsGreedyPolicy(),
-    ) -> tuple[dict[Bandit, list[float]], dict[Bandit, list[float]]]:
+    ) -> tuple[dict[Bandit, dict[int, float]], dict[Bandit, list[float]], list[float]]:
         if self.is_stationary or not change_law:
             changes_at = [-1]
 
-        change_at = 0
+        changes_at = deepcopy(changes_at)
+        change_at = changes_at.pop(0)
         q_evol: dict[Bandit, dict[int, float]] = {
             bandit: {0: self.q[bandit]} for bandit in self.bandits
         }
@@ -42,11 +45,11 @@ class Environment:
         rewards: list[float] = list()
 
         for game in range(iterations):
-            if game == changes_at[change_at]:
+            if game == change_at:
                 self.change_environment(change_law)
                 for bandit in self.bandits:
                     mean_evol[bandit].append(bandit.mean)
-                change_at = change_at + 1 if change_at + 1 < len(changes_at) else 0
+                change_at = changes_at.pop(0) if changes_at else -1
 
             bandit = policy.act(self.q)
             reward = bandit.pull_leaver()
@@ -55,4 +58,4 @@ class Environment:
             q_evol[bandit][game + 1] = self.q[bandit]
             rewards.append(reward)
 
-        return q_evol, mean_evol
+        return q_evol, mean_evol, rewards
