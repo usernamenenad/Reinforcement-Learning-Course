@@ -1,3 +1,4 @@
+import os
 import matplotlib.pyplot as plt
 import networkx as nx
 
@@ -78,6 +79,9 @@ class Info:
 
     @staticmethod
     def log_game(game: Game, game_number: int, nof: str):
+        if not os.path.exists("logs"):
+            os.mkdir("logs")
+
         to_log = (
             f"[Game {game_number}]:\r\n\r\n"
             + Info.log_experiences(game.players)
@@ -88,11 +92,17 @@ class Info:
 
     @staticmethod
     def log_q_values(q: Q, policy: str):
+        if not os.path.exists("logs"):
+            os.mkdir("logs")
+
         with open(f"./logs/q_values_{policy}.txt", "w") as qv:
             qv.write(q.__str__())
 
     @staticmethod
     def log_optimal_policy(q: Q, policy: str):
+        if not os.path.exists("logs"):
+            os.mkdir("logs")
+
         to_log = []
 
         for state in q.all_states:

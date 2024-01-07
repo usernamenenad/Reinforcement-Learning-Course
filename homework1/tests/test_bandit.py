@@ -20,4 +20,4 @@ def test_bandit():
         change_law=change_law,
     )
     Info.plot_convergence(q_evol, mean_evol, ITERATIONS, CHANGES_AT)
-    # Info.log_q_evol(q_evol)
+    Info.log_q_evol(q_evol)

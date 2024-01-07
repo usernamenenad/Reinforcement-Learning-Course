@@ -1,3 +1,4 @@
+import os
 import matplotlib.pyplot as plt
 import networkx as nx
 from colormap import rgb2hex
@@ -167,6 +168,9 @@ class Info:
 
     @staticmethod
     def log_probabilities(env: MazeEnvironment, nof: str):
+        if not os.path.exists("logs"):
+            os.mkdir("logs")
+
         to_log = list()
         for s, a in env.probabilities:
             news = env(s, a)
@@ -189,5 +193,8 @@ class Info:
 
     @staticmethod
     def log_q_values(q: Q, nof: str):
+        if not os.path.exists("logs"):
+            os.mkdir("logs")
+
         with open(f"./logs/q_values_{nof}.txt", "w") as qv:
             qv.write(q.__str__())
