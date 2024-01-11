@@ -1,4 +1,4 @@
-from .maze import MazeEnvironment
+from .env import MazeEnvironment
 from .utils import *
 
 

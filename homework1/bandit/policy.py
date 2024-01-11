@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from random import choice
-from .utils import *
+
+from bandit.utils import *
 
 
 class Policy(ABC):
@@ -24,8 +25,4 @@ class EpsGreedyPolicy(Policy):
         self.__epsilon = epsilon
 
     def act(self, q: Q) -> Bandit:
-        return (
-            GreedyPolicy().act(q)
-            if random() > self.__epsilon
-            else RandomPolicy().act(q)
-        )
+        return GreedyPolicy().act(q) if random() > self.__epsilon else RandomPolicy().act(q)

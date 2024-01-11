@@ -1,1 +1,1 @@
-from .test_bandit import *
+from tests.test_bandit import *

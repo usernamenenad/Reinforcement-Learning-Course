@@ -1,12 +1,14 @@
 from copy import deepcopy
 from typing import Callable
 
-from .policy import *
+from bandit.bandit import Bandit
+from bandit.policy import Policy
+from bandit.utils import Q
 
 
 class Environment:
     def __init__(
-        self, bandits: list[Bandit], penalty: float = 1000.0, is_stationary: bool = True
+            self, bandits: list[Bandit], penalty: float = 1000.0, is_stationary: bool = True
     ) -> None:
         self.bandits: list[Bandit] = bandits
         self.penalty: float = penalty
@@ -24,12 +26,12 @@ class Environment:
             bandit.mean, bandit.span = change_law(*args)
 
     def run(
-        self,
-        policy: Policy,
-        iterations: int = 10000,
-        changes_at: list[int] = None,
-        change_law: Callable[..., tuple[float, float]] = None,
-        alpha: float = 0.1,
+            self,
+            policy: Policy,
+            iterations: int = 10000,
+            changes_at: list[int] = None,
+            change_law: Callable[..., tuple[float, float]] = None,
+            alpha: float = 0.1,
     ) -> tuple[dict[Bandit, dict[int, float]], dict[Bandit, list[float]], list[float]]:
         if self.is_stationary or not change_law:
             changes_at = [-1]

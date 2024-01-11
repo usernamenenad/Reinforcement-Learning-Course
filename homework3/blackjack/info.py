@@ -1,8 +1,14 @@
 import os
+from copy import copy
+
 import matplotlib.pyplot as plt
 import networkx as nx
+from tabulate import tabulate
 
-from .blackjack import *
+from blackjack.agents import Agent
+from blackjack.game import Game
+from blackjack.policy import GreedyPolicy
+from blackjack.utils import Q
 
 
 class Info:
@@ -83,9 +89,9 @@ class Info:
             os.mkdir("logs")
 
         to_log = (
-            f"[Game {game_number}]:\r\n\r\n"
-            + Info.log_experiences(game.players)
-            + "\r\n"
+                f"[Game {game_number}]:\r\n\r\n"
+                + Info.log_experiences(game.players)
+                + "\r\n"
         )
         with open(f"./logs/game_log_{nof}.txt", "a") as gl:
             gl.write(to_log)

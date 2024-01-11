@@ -1,9 +1,14 @@
 import os.path
-import warnings
+from abc import ABC, abstractmethod
+from warnings import filterwarnings
 
 from alive_progress import alive_bar
 
-from .info import *
+from blackjack.agents import PlayerState
+from blackjack.game import Game
+from blackjack.info import Info
+from blackjack.policy import EpsGreedyPolicy
+from blackjack.utils import Action, Q
 
 
 class MonteCarlo(ABC):
@@ -31,7 +36,7 @@ class IncrMonteCarlo(MonteCarlo):
         super().__init__(q if q else Q(), gamma, alpha)
 
     def run(self, game: Game, iterations: int = 1000) -> Q:
-        warnings.filterwarnings("ignore", category=DeprecationWarning)
+        filterwarnings("ignore", category=DeprecationWarning)
         print("Starting Incremental Monte Carlo...")
 
         if os.path.exists("game_log_imc.txt"):
@@ -40,7 +45,7 @@ class IncrMonteCarlo(MonteCarlo):
         with alive_bar(total=iterations) as bar:
             for i in range(iterations):
                 # Play a game
-                game.play(EpsilonGreedyPolicy(epsilon=0.1), self.q, self.gamma)
+                game.play(EpsGreedyPolicy(epsilon=0.1), self.q, self.gamma)
 
                 # Log game information in a text file
                 Info.log_game(game, i, "imc")

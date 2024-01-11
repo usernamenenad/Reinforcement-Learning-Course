@@ -1,10 +1,14 @@
-import warnings
 import os.path
+from abc import ABC, abstractmethod
+from warnings import filterwarnings
 
 from alive_progress import alive_bar
 from observer import Observer
 
-from .info import *
+from blackjack.game import Game
+from blackjack.info import Info
+from blackjack.policy import EpsGreedyPolicy
+from blackjack.utils import State, Action, Q
 
 
 class TD(ABC):
@@ -39,11 +43,11 @@ class QLearning(TD, Observer):
             v_plus = 0
 
         self.q[s, a] = (1 - self.alpha) * self.q[s, a] + self.alpha * (
-            r + self.gamma * v_plus
+                r + self.gamma * v_plus
         )
 
     def run(self, game: Game, iterations: int) -> Q:
-        warnings.filterwarnings("ignore", category=DeprecationWarning)
+        filterwarnings("ignore", category=DeprecationWarning)
         print("Starting Q-Learning...")
 
         if os.path.exists("game_log_ql.txt"):
@@ -52,7 +56,7 @@ class QLearning(TD, Observer):
         with alive_bar(iterations) as bar:
             for i in range(iterations):
                 # Play a game
-                game.play(EpsilonGreedyPolicy(epsilon=0.1), self.q, self.gamma)
+                game.play(EpsGreedyPolicy(epsilon=0.1), self.q, self.gamma)
 
                 # Log game information in a text file
                 Info.log_game(game, i, "ql")
@@ -84,11 +88,11 @@ class SARSA(TD, Observer):
             q_plus = 0.0
 
         self.q[s, a] = (1 - self.alpha) * self.q[s, a] + self.alpha * (
-            r + self.gamma * q_plus
+                r + self.gamma * q_plus
         )
 
     def run(self, game: Game, iterations: int):
-        warnings.filterwarnings("ignore", category=DeprecationWarning)
+        filterwarnings("ignore", category=DeprecationWarning)
         print("Starting SARSA...")
 
         if os.path.exists("game_log_sarsa.txt"):
@@ -97,7 +101,7 @@ class SARSA(TD, Observer):
         with alive_bar(iterations) as bar:
             for i in range(iterations):
                 # Play a game
-                game.play(EpsilonGreedyPolicy(epsilon=0.1), self.q, self.gamma)
+                game.play(EpsGreedyPolicy(epsilon=0.1), self.q, self.gamma)
 
                 Info.log_game(game, i, "sarsa")
 

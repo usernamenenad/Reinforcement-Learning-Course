@@ -22,7 +22,7 @@ class GreedyPolicy(Policy):
         )
 
 
-class EpsilonGreedyPolicy(Policy):
+class EpsGreedyPolicy(Policy):
     def __init__(self, epsilon: float):
         self.epsilon = epsilon
 

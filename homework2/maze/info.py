@@ -1,17 +1,21 @@
 import os
+
 import matplotlib.pyplot as plt
 import networkx as nx
 from colormap import rgb2hex
+from numpy import ones, uint8
 from tabulate import tabulate
 
-from .maze import *
-from .policy import *
+from maze.base import MazeGraph, MazeBoard, MazeBase
+from maze.env import MazeEnvironment, EnvType, Q
+from maze.policy import Policy
+from maze.utils import *
 
 
 class Info:
     @staticmethod
     def __draw_board(board: MazeBoard, ax=None):
-        board_img = np.ones(shape=(board.rows_no, board.cols_no, 3), dtype=np.uint8)
+        board_img = ones(shape=(board.rows_no, board.cols_no, 3), dtype=uint8)
 
         for i in range(board.rows_no):
             for j in range(board.cols_no):

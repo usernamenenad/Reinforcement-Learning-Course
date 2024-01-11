@@ -1,5 +1,5 @@
 from dataclasses import dataclass, astuple
-from enum import Enum, StrEnum, auto
+from enum import Enum, StrEnum
 from random import shuffle
 
 from tabulate import tabulate
@@ -13,6 +13,10 @@ class CardSuit(StrEnum):
 
     def __repr__(self):
         return self
+
+    @staticmethod
+    def get_all_suits():
+        return [CardSuit.CLUB, CardSuit.DIAMOND, CardSuit.HEART, CardSuit.SPADE]
 
 
 class CardNumber(Enum):
@@ -43,6 +47,24 @@ class CardNumber(Enum):
             case _:
                 return str(self.value)
 
+    @staticmethod
+    def get_all_numbers():
+        return [
+            CardNumber.ACE,
+            CardNumber.TWO,
+            CardNumber.THREE,
+            CardNumber.FOUR,
+            CardNumber.FIVE,
+            CardNumber.SIX,
+            CardNumber.SEVEN,
+            CardNumber.EIGHT,
+            CardNumber.NINE,
+            CardNumber.TEN,
+            CardNumber.JACK,
+            CardNumber.DAME,
+            CardNumber.KING,
+        ]
+
 
 @dataclass
 class Card:
@@ -52,9 +74,9 @@ class Card:
     @property
     def value(self):
         if (
-            self.number == CardNumber.JACK
-            or self.number == CardNumber.DAME
-            or self.number == CardNumber.KING
+                self.number == CardNumber.JACK
+                or self.number == CardNumber.DAME
+                or self.number == CardNumber.KING
         ):
             return 10
         return self.number.value
@@ -81,7 +103,9 @@ class CardDeck:
         Used for (RE)creating and SHUFFLING the deck.
         """
         self.__deck = self.__no_sets * [
-            Card(number=n, suit=s) for n in iter(CardNumber) for s in iter(CardSuit)
+            Card(number=n, suit=s)
+            for n in CardNumber.get_all_numbers()
+            for s in CardSuit.get_all_suits()
         ]
 
         shuffle(self.__deck)

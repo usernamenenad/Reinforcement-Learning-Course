@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .bandit import *
+from bandit.bandit import *
 
 
 @dataclass

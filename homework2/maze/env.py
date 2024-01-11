@@ -1,42 +1,39 @@
 from copy import deepcopy
 from dataclasses import dataclass
 from random import random
+from typing import Any
+
 from alive_progress import alive_bar
+from numpy import random, round, ones
 from tabulate import tabulate
 
-import numpy as np
-
-from .base import *
-
-
-class EnvType(Enum):
-    DETERMINISTIC = auto()
-    STOCHASTIC = auto()
+from maze.base import MazeBase
+from maze.utils import *
 
 
 @dataclass
 class Probability:
     """
     Models probabilities as dataclass.
-    User has the option to set "deterministic" probablities,
+    User has the option to set "deterministic" probabilities,
     which means that a certain action has always one and only one direction
     associated with it, or "stochastic" - all random.
     """
 
     def __init__(
-        self,
-        base: MazeBase,
-        states: list[State],
-        actions: list[Action],
-        env_type: EnvType,
+            self,
+            base: MazeBase,
+            states: list[State],
+            actions: list[Action],
+            env_type: EnvType,
     ):
         self.__probability: dict[tuple[State, Action], dict[Direction, float]] = dict()
         for s in states:
             for a in actions:
                 directions = base.get_directions(s)
 
-                probs = np.round(
-                    np.random.dirichlet(np.ones(len(directions)), size=1)[0], 3
+                probs = round(
+                    random.dirichlet(ones(len(directions)), size=1)[0], 3
                 ).tolist()
                 self.__probability[(s, a)] = dict()
 
@@ -47,8 +44,8 @@ class Probability:
                             for direction in directions
                         ]
                     case EnvType.STOCHASTIC:
-                        probs = np.round(
-                            np.random.dirichlet(np.ones(len(directions)), size=1)[0], 3
+                        probs = round(
+                            random.dirichlet(ones(len(directions)), size=1)[0], 3
                         ).tolist()
 
                 for i, direction in enumerate(directions):
@@ -84,12 +81,12 @@ class Q:
         return self.__probabilities
 
     def __init__(
-        self,
-        base: MazeBase,
-        states: list[State],
-        actions: list[Action],
-        env_type: EnvType,
-        probabilities: Probability = None,
+            self,
+            base: MazeBase,
+            states: list[State],
+            actions: list[Action],
+            env_type: EnvType,
+            probabilities: Optional[Probability] = None,
     ):
         self.__base = base
         self.__states = states
@@ -118,7 +115,11 @@ class Q:
     def __str__(self):
         to_repr = []
         for s, a in self.__q:
-            to_repr.append({"State": s, "Action": a, "Value": self.__q[(s, a)]})
+            to_repr.append({
+                "State": s,
+                "Action": a,
+                "Value": self.__q[(s, a)]
+            })
 
         return tabulate(to_repr, headers="keys", tablefmt="rst")
 
@@ -205,13 +206,11 @@ class MazeEnvironment:
     def gamma(self) -> float:
         return self.__gamma
 
-    def __init__(
-        self,
-        base: MazeBase,
-        actions: list[Action] = None,
-        env_type: EnvType = EnvType.STOCHASTIC,
-        gamma: float = 1,
-    ):
+    def __init__(self,
+                 base: MazeBase,
+                 actions: Optional[list[Action]] = None,
+                 env_type: EnvType = EnvType.STOCHASTIC,
+                 gamma: float = 1):
         """
         Initializer for the environment by specifying the underlying
         maze base.
@@ -223,8 +222,7 @@ class MazeEnvironment:
         self.__states: list[State] = [
             node
             for node in self.base
-            if self.base[node].is_steppable
-            and not isinstance(self.__base[node], TeleportCell)
+            if self.base[node].is_steppable and not isinstance(self.__base[node], TeleportCell)
         ]
 
         self.__actions: list[Action] = actions if actions else Action.get_all_actions()
@@ -233,7 +231,7 @@ class MazeEnvironment:
         self.__v = V(self.__q)
         self.__gamma = gamma
 
-    def __call__(self, state: State | Any, action: Action) -> list[dict[str, Any]]:
+    def __call__(self, state: State, action: Action) -> list[dict[str, Any]]:
         """
         Makes possible for environment class to act as a Markov Decision process -
         for a given state and action, it will return new states and rewards.
@@ -250,15 +248,13 @@ class MazeEnvironment:
                 new_state = self.__base.find_position(new_cell.teleport_to)
                 new_cell = new_cell.teleport_to
 
-            next_states.append(
-                {
-                    "direction": direction,
-                    "new_state": new_state,
-                    "reward": new_cell.reward,
-                    "probability": self.probabilities[(state, action)][direction],
-                    "is_terminal": new_cell.is_terminal,
-                }
-            )
+            next_states.append({
+                "direction": direction,
+                "new_state": new_state,
+                "reward": new_cell.reward,
+                "probability": self.probabilities[(state, action)][direction],
+                "is_terminal": new_cell.is_terminal,
+            })
 
         return next_states
 
@@ -269,18 +265,13 @@ class MazeEnvironment:
         for s in self.__states:
             if not self.__base[s].is_terminal:
                 for a in self.__actions:
-                    mdp_ret = self(s, a)
+                    mdps = self(s, a)
+
                     # q(s, a) = sum(p(s^+, r | s, a)(r + gamma * max_a^+{q(s^+, a^+)}))
-                    self.__q[(s, a)] = sum(
-                        [
-                            mdp["probability"]
-                            * (
-                                mdp["reward"]
-                                + self.gamma * self.__v.determine(mdp["new_state"])
-                            )
-                            for mdp in mdp_ret
-                        ]
-                    )
+                    self.__q[(s, a)] = sum([
+                        mdp["probability"] * (mdp["reward"] + self.gamma * self.__v.determine(mdp["new_state"]))
+                        for mdp in mdps])
+
                 self.__v[s] = self.__v.determine(s)
 
     def compute_values(self, eps: float = 0.01, iterations: int = 1000) -> int:

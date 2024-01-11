@@ -1,6 +1,6 @@
+import matplotlib.pyplot as plt
+
 from maze import *
-import unittest
-import os
 
 DEFAULT_SPECS = [
     (10, lambda: RegularCell(-1)),

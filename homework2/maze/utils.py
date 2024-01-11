@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 from random import choices
-from typing import Callable
+from typing import Callable, Optional
 
 
 class State:
@@ -47,7 +47,7 @@ class Cell(ABC):
     def is_terminal(self) -> bool:
         return False
 
-    def __init__(self, reward: float = None):
+    def __init__(self, reward: Optional[float] = None):
         self.__reward = reward
 
 
@@ -119,7 +119,7 @@ class TeleportCell(Cell):
 
     def __init__(self):
         super().__init__()
-        self.__teleport_to = None
+        self.__teleport_to: Optional[Cell] = None
 
 
 class WallCell(Cell):
@@ -176,3 +176,8 @@ ad_map: dict[Action, Direction] = {
     Action.ACTION_A3: Direction.UP,
     Action.ACTION_A4: Direction.DOWN,
 }
+
+
+class EnvType(Enum):
+    DETERMINISTIC = auto()
+    STOCHASTIC = auto()

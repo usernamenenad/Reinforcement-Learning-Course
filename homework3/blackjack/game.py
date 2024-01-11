@@ -1,9 +1,11 @@
 from copy import copy, deepcopy
-
-from .agents import *
-from .policy import *
+from typing import Optional
 
 from observer import Observable
+
+from blackjack.agents import Agent, Player
+from blackjack.policy import Policy
+from blackjack.utils import CardDeck, Action, Q
 
 
 class Game(Observable):
@@ -38,24 +40,25 @@ class Game(Observable):
             player.update_total(player_card)
             player.update_total(common_card)
 
-    def __play_round(
-        self, players: list[Agent], policy: Policy, q: Q, rnd: int
-    ) -> list[Agent]:
+    def __play_round(self,
+                     players: list[Agent],
+                     policy: Policy,
+                     q: Q,
+                     rnd: int) -> list[Agent]:
         """
         A private game method which simulates one round.
         Returns this round's winners.
         """
         max_total = 0
-        action: Action = None
+        action: Optional[Action] = None
 
         for player in players:
             while True:
                 action = action if action else policy.act(q, player.state)
 
                 if action == Action.HOLD:
-                    player.log_experience(
-                        rnd, [deepcopy(player.state), action, 0.0, None]
-                    )
+                    player.log_experience(rnd, [deepcopy(player.state), action, 0.0, None])
+
                     # Determine if this is the new max_total.
                     max_total = (
                         player.state.total
