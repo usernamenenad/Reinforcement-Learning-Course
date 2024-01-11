@@ -121,7 +121,7 @@ class Game(Observable):
                     player.build_gains(rnd, -1.0, gamma)
                     state = deepcopy(player.experiences[rnd][-1][0])
                     action = deepcopy(player.experiences[rnd][-1][1])
-                    reward = 0.0
+                    reward = -1.0
                     self.notify(state, action, reward, None, None)
 
             for player in self.__players:

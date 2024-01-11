@@ -18,15 +18,8 @@ class RandomPolicy(Policy):
 class GreedyPolicy(Policy):
     def act(self, q: Q, state: State) -> Action:
         return (
-            Action.HIT
-            if q[(state, Action.HIT)] > q[(state, Action.HOLD)]
-            else Action.HOLD
+            Action.HIT if q[state, Action.HIT] > q[state, Action.HOLD] else Action.HOLD
         )
-
-
-class DealerPolicy(Policy):
-    def act(self, q: Q, state: State) -> Action:
-        return Action.HIT if state.total < 17 else Action.HOLD
 
 
 class EpsilonGreedyPolicy(Policy):
@@ -39,3 +32,8 @@ class EpsilonGreedyPolicy(Policy):
             if random() > self.epsilon
             else RandomPolicy().act(q, state)
         )
+
+
+class DealerPolicy(Policy):
+    def act(self, q: Q, state: State) -> Action:
+        return Action.HIT if state.total < 17 else Action.HOLD
