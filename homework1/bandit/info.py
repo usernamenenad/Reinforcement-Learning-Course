@@ -10,8 +10,12 @@ from bandit.bandit import Bandit
 
 class Info:
     @staticmethod
-    def plot_convergence(q_evol: dict[Bandit, dict[int, float]], mean_evol: dict[Bandit, list[float]], iterations: int,
-                         changes_at: list[int] = None) -> None:
+    def plot_convergence(
+        q_evol: dict[Bandit, dict[int, float]], 
+        mean_evol: dict[Bandit, list[float]], iterations: int, 
+        changes_at: list[int] = None
+    )-> None:
+        
         sns.set_theme(style="darkgrid")
         _, axes = plt.subplots(nrows=len(q_evol), ncols=1, sharex=True, sharey=True, constrained_layout=True)
         axes = axes.flatten()

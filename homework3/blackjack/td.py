@@ -42,9 +42,7 @@ class QLearning(TD, Observer):
         else:
             v_plus = 0
 
-        self.q[s, a] = (1 - self.alpha) * self.q[s, a] + self.alpha * (
-                r + self.gamma * v_plus
-        )
+        self.q[s, a] = (1 - self.alpha) * self.q[s, a] + self.alpha * (r + self.gamma * v_plus)
 
     def run(self, game: Game, iterations: int) -> Q:
         filterwarnings("ignore", category=DeprecationWarning)
@@ -87,9 +85,7 @@ class SARSA(TD, Observer):
         else:
             q_plus = 0.0
 
-        self.q[s, a] = (1 - self.alpha) * self.q[s, a] + self.alpha * (
-                r + self.gamma * q_plus
-        )
+        self.q[s, a] = (1 - self.alpha) * self.q[s, a] + self.alpha * (r + self.gamma * q_plus)
 
     def run(self, game: Game, iterations: int):
         filterwarnings("ignore", category=DeprecationWarning)

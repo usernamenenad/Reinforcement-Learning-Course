@@ -1,7 +1,7 @@
 from blackjack import *
 
 
-def test_incr_monte_carlo(self):
+def test_incr_monte_carlo():
     Player.no_players = 0
     no_players = 2
     players = [Player() for _ in range(no_players)]

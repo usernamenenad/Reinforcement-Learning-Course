@@ -40,11 +40,7 @@ class Game(Observable):
             player.update_total(player_card)
             player.update_total(common_card)
 
-    def __play_round(self,
-                     players: list[Agent],
-                     policy: Policy,
-                     q: Q,
-                     rnd: int) -> list[Agent]:
+    def __play_round(self, players: list[Agent], policy: Policy, q: Q, rnd: int) -> list[Agent]:
         """
         A private game method which simulates one round.
         Returns this round's winners.
@@ -60,11 +56,7 @@ class Game(Observable):
                     player.log_experience(rnd, [deepcopy(player.state), action, 0.0, None])
 
                     # Determine if this is the new max_total.
-                    max_total = (
-                        player.state.total
-                        if player.state.total > max_total
-                        else max_total
-                    )
+                    max_total = player.state.total if player.state.total > max_total else max_total
                     break
 
                 card = self.__deck.draw()
