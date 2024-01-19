@@ -1,10 +1,9 @@
-from copy import deepcopy
 from dataclasses import dataclass
-from random import random
+from random import random, randint
 from typing import Any
 
-from alive_progress import alive_bar
-from numpy import random, round, ones
+from numpy import round, ones
+from numpy.random import dirichlet
 from tabulate import tabulate
 
 from maze.base import MazeBase
@@ -20,36 +19,32 @@ class Probability:
     associated with it, or "stochastic" - all random.
     """
 
-    def __init__(
-            self,
-            base: MazeBase,
-            states: list[State],
-            actions: list[Action],
-            env_type: EnvType,
-    ):
+    def __init__(self, base: MazeBase, states: list[State], actions: list[Action], env_type: EnvType) -> None:
+        """
+        A wrapper around probabilities.
+        """
+
         self.__probability: dict[tuple[State, Action], dict[Direction, float]] = dict()
+
         for s in states:
             for a in actions:
                 directions = base.get_directions(s)
-
-                probs = round(
-                    random.dirichlet(ones(len(directions)), size=1)[0], 3
-                ).tolist()
-                self.__probability[(s, a)] = dict()
+                self.__probability[s, a] = dict()
+                probs = list()
 
                 match env_type:
                     case EnvType.DETERMINISTIC:
-                        probs = [
-                            1.0 if direction == ad_map[a] else 0.0
-                            for direction in directions
-                        ]
+                        probs = [1.0 if direction == ad_map[a] else 0.0 for direction in directions]
+                        if 1.0 not in probs:
+                            if len(probs) < 2:
+                                probs = [1.0]
+                            else:
+                                probs[randint(0, len(probs) - 1)] = 1.0
                     case EnvType.STOCHASTIC:
-                        probs = round(
-                            random.dirichlet(ones(len(directions)), size=1)[0], 3
-                        ).tolist()
+                        probs = round(dirichlet(ones(len(directions)), size=1)[0], 3).tolist()
 
                 for i, direction in enumerate(directions):
-                    self.__probability[(s, a)][direction] = probs[i]
+                    self.__probability[s, a][direction] = probs[i]
 
     def __getitem__(self, key: tuple[State, Action]) -> dict[Direction, float]:
         return self.__probability[key]
@@ -72,30 +67,16 @@ class Q:
     def actions(self) -> list[Action]:
         return self.__actions
 
-    @property
-    def base(self) -> MazeBase:
-        return self.__base
-
-    @property
-    def probabilities(self) -> Probability:
-        return self.__probabilities
-
-    def __init__(
-            self,
-            base: MazeBase,
-            states: list[State],
-            actions: list[Action],
-            env_type: EnvType,
-            probabilities: Optional[Probability] = None,
-    ):
-        self.__base = base
+    @property    
+    def v_table(self) -> dict[State, float]:
+        return {
+            s: self.determine_v(s)
+            for s in self.states
+        }
+   
+    def __init__(self, base: MazeBase, states: list[State], actions: list[Action]) -> None:
         self.__states = states
         self.__actions = actions
-        self.__probabilities: Probability = (
-            probabilities
-            if probabilities
-            else Probability(base, self.__states, self.__actions, env_type)
-        )
 
         self.__q: dict[tuple[State, Action], float] = {
             (s, a): -10 * random() if not base[s].is_terminal else 0.0
@@ -106,60 +87,27 @@ class Q:
     def __getitem__(self, key: tuple[State, Action]) -> float:
         return self.__q[key]
 
-    def __setitem__(self, key: tuple[State, Action], value: float):
+    def __setitem__(self, key: tuple[State, Action], value: float) -> None:
         self.__q[key] = value
 
     def __iter__(self):
         return iter(self.__q)
 
-    def __str__(self):
+    def __str__(self) -> str:
         to_repr = []
         for s, a in self.__q:
-            to_repr.append({
-                "State": s,
-                "Action": a,
-                "Value": self.__q[(s, a)]
-            })
+            to_repr.append(
+                {
+                    "State": s,
+                    "Action": a,
+                    "Value": self.__q[(s, a)]
+                }
+            )
 
         return tabulate(to_repr, headers="keys", tablefmt="rst")
 
-
-@dataclass
-class V:
-    """
-    Class for representing V values.
-    """
-
-    @property
-    def states(self) -> list[State]:
-        return self.__q.states
-
-    def __init__(self, q: Q):
-        self.__q: Q = q
-        self.__v: dict[State, float] = {s: self.determine(s) for s in self.__q.states}
-
-    def __getitem__(self, key: State) -> float:
-        return self.__v[key]
-
-    def __setitem__(self, key: State, value: float):
-        self.__v[key] = value
-
-    def __iter__(self):
-        return iter(self.__q)
-
-    def determine(self, s: State) -> float:
-        q_sum = list()
-        for a in self.__q.actions:
-            q_sum.append(
-                sum(
-                    [
-                        self.__q.probabilities[(s, a)][direction] * self.__q[(s, a)]
-                        for direction in self.__q.base.get_directions(s)
-                    ]
-                )
-            )
-        return max(q_sum)
-
+    def determine_v(self, s: State) -> float:
+        return max([self.__q[s, a] for a in self.__actions])
 
 class MazeEnvironment:
     """
@@ -192,25 +140,13 @@ class MazeEnvironment:
 
     @property
     def probabilities(self) -> Probability:
-        return self.__q.probabilities
-
-    @property
-    def q(self) -> Q:
-        return self.__q
-
-    @property
-    def v(self) -> V:
-        return self.__v
-
-    @property
-    def gamma(self) -> float:
-        return self.__gamma
+        return self.__probabilities
 
     def __init__(self,
                  base: MazeBase,
                  actions: Optional[list[Action]] = None,
-                 env_type: EnvType = EnvType.STOCHASTIC,
-                 gamma: float = 1):
+                 env_type: EnvType = EnvType.STOCHASTIC
+                 ) -> None:
         """
         Initializer for the environment by specifying the underlying
         maze base.
@@ -219,73 +155,46 @@ class MazeEnvironment:
         self.__base = base
         self.__type = env_type
 
-        self.__states: list[State] = [
-            node
-            for node in self.base
-            if self.base[node].is_steppable and not isinstance(self.__base[node], TeleportCell)
-        ]
+        self.__states: list[State] = [node
+                                      for node in self.base
+                                      if self.base[node].is_steppable
+                                      and not isinstance(self.__base[node], TeleportCell)]
 
         self.__actions: list[Action] = actions if actions else Action.get_all_actions()
 
-        self.__q = Q(base, self.__states, self.__actions, env_type)
-        self.__v = V(self.__q)
-        self.__gamma = gamma
+        self.__probabilities = Probability(base=self.__base,
+                                           states=self.__states,
+                                           actions=self.__actions,
+                                           env_type=self.__type)
 
     def __call__(self, state: State, action: Action) -> list[dict[str, Any]]:
         """
         Makes possible for environment class to act as a Markov Decision process -
         for a given state and action, it will return new states and rewards.
         """
-        next_states = list()
+        mdp = list()
 
         for direction in self.__base.get_directions(state):
-            new_state = self.__base.get_from(state, direction)
-            if isinstance(self.__base.nodes[new_state], WallCell):
-                new_state = state
-            new_cell = self.__base[new_state]
+            next_state = self.__base.get_from(state, direction)
+            if isinstance(self.__base.nodes[next_state], WallCell):
+                next_state = state
+            new_cell = self.__base[next_state]
 
             if isinstance(new_cell, TeleportCell):
-                new_state = self.__base.find_position(new_cell.teleport_to)
+                next_state = self.__base.find_position(new_cell.teleport_to)
                 new_cell = new_cell.teleport_to
 
-            next_states.append({
-                "direction": direction,
-                "new_state": new_state,
-                "reward": new_cell.reward,
-                "probability": self.probabilities[(state, action)][direction],
-                "is_terminal": new_cell.is_terminal,
-            })
+            mdp.append(
+                {
+                    "direction": direction,
+                    "next_state": next_state,
+                    "reward": new_cell.reward,
+                    "probability": self.__probabilities[state, action][direction],
+                    "is_terminal": new_cell.is_terminal,
+                }
+            )
 
-        return next_states
+        return mdp
 
-    def __update_values(self) -> None:
-        """
-        Private method for updating Q and V values.
-        """
-        for s in self.__states:
-            if not self.__base[s].is_terminal:
-                for a in self.__actions:
-                    mdps = self(s, a)
-
-                    # q(s, a) = sum(p(s^+, r | s, a)(r + gamma * max_a^+{q(s^+, a^+)}))
-                    self.__q[(s, a)] = sum([
-                        mdp["probability"] * (mdp["reward"] + self.gamma * self.__v.determine(mdp["new_state"]))
-                        for mdp in mdps])
-
-                self.__v[s] = self.__v.determine(s)
-
-    def compute_values(self, eps: float = 0.01, iterations: int = 1000) -> int:
-        """
-        Method for converging Q and V values using Bellman's equations.
-        """
-        with alive_bar(iterations) as bar:
-            for k in range(iterations):
-                ov = deepcopy(self.__q)
-                self.__update_values()
-                err = max([abs(self.__q[sa] - ov[sa]) for sa in self.__q])
-                if err < eps:
-                    return k
-
-                bar()
-
-        return iterations
+    def is_terminal(self, s: State) -> bool:
+        return self.__base[s].is_terminal
