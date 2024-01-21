@@ -12,8 +12,8 @@ There are several types of cells an agent can *interract* with:
 - *Wall cells*, which give $-11$ reward when bumped into and are colored *gray*. It is important that the *wall cells* give more negative 
 reward than *regular bad cells*, because the agent can just bump into *wall cell* forever and always have a greater long term 
 gain than just stepping onto *regular bad cell*.
-- *Teleport cells*, which teleport an agent to some *non-terminal*, *non-teleport*, *non-wall cell*.
-- *Terminal cells*, when stepped onto, *finish* the game.
+- *Teleport cells*, which teleport an agent to some *non-terminal*, *non-teleport*, *non-wall cell* and are colored *green*.
+- *Terminal cells*, when stepped onto, *finish* the game. They are colored *blue*.
 
 There's a distinction between *states* and *cells*. States are represented by cells but carry much greater information, like relative position,
 value etc. Of course, *teleport* cell cannot be a state itself, because it's just another representation of another cell (a cell which *teleport*
