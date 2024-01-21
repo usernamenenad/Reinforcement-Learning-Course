@@ -8,8 +8,8 @@ A task consists of an agent whose task is to find an optimal path to a *terminal
 There are several types of cells an agent can *interract* with:
 
 - *Regular cell*, which has two types itself - being *regular good* (which gives $-1$ reward) and *regular bad* (which gives $-10$ reward).
-- *Wall cell*, when bumped on, gives $-11$ reward. It is important that the wall gives more negative reward than *regular bad cell*, because 
-the agent can just bump on wall cell forever and always have a greater long term gain than just stepping onto *regular bad* cell
+- *Wall cell*, when bumped into, gives $-11$ reward. It is important that the *wall cell* gives more negative reward than *regular bad cell*, because 
+the agent can just bump into wall cell forever and always have a greater long term gain than just stepping onto *regular bad* cell
 - *Teleport cell*, which teleports an agent to some non-terminal, non-teleport, non-wall cell.
 - *Terminal cell*, when stepped onto, finishes the game.
 
