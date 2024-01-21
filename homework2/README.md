@@ -28,13 +28,13 @@ An algorithm used for determining optimal $Q$ and $V$ values is *value iteration
 
 We're considering finding the optimal policy using $Q$ values and $V$ values.
 
-### Value iteration using $Q$ values (*deterministic MDP*)
+### Value iteration on *deterministic MDP* using $Q$ and $V$ values
 
 ![](./images/db.png)
 
 ![](./images/dg.png)
 
-### Value iteration using $V$ values (*stochastic MDP*)
+### Value iteration on *stochastic MDP* using $Q$ and $V$ values
 
 ![](./images/sb.png)
 
