@@ -7,7 +7,7 @@
 .pytest_cache
 
 logs
-images
+# images
 __pycache__
 
 poetry.lock
