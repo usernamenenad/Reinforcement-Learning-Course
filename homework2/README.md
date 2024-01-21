@@ -7,11 +7,13 @@ A task consists of an agent whose task is to find an optimal path to a *terminal
 
 There are several types of cells an agent can *interract* with:
 
-- *Regular cell*, which has two types itself - being *regular good* (which gives $-1$ reward) and *regular bad* (which gives $-10$ reward).
-- *Wall cell*, when bumped into, gives $-11$ reward. It is important that the *wall cell* gives more negative reward than *regular bad cell*, because 
-the agent can just bump into wall cell forever and always have a greater long term gain than just stepping onto *regular bad* cell
-- *Teleport cell*, which teleports an agent to some non-terminal, non-teleport, non-wall cell.
-- *Terminal cell*, when stepped onto, finishes the game.
+- *Regular cells*, which have two types themselves - being *regular good* (which gives $-1$ reward and colored *white*) and *regular bad* 
+(which give $-10$ reward and are colored *red*).
+- *Wall cells*, which give $-11$ reward when bumped into and are colored *gray*. It is important that the *wall cells* give more negative 
+reward than *regular bad cells*, because the agent can just bump into *wall cell* forever and always have a greater long term 
+gain than just stepping onto *regular bad cell*.
+- *Teleport cells*, which teleport an agent to some *non-terminal*, *non-teleport*, *non-wall cell*.
+- *Terminal cells*, when stepped onto, *finish* the game.
 
 There's a distinction between *states* and *cells*. States are represented by cells but carry much greater information, like relative position,
 value etc. Of course, *teleport* cell cannot be a state itself, because it's just another representation of another cell (a cell which *teleport*
