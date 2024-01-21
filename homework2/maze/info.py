@@ -7,7 +7,8 @@ from numpy import ones, uint8
 from tabulate import tabulate
 
 from maze.base import MazeGraph, MazeBoard, MazeBase
-from maze.env import MazeEnvironment, Q
+from maze.env import MazeEnvironment
+from maze.func import V, Q
 from maze.policy import Policy
 from maze.utils import *
 
@@ -37,7 +38,13 @@ class Info:
             ax.text(s[1] - 0.4, s[0] + 0.1, f"{values[s]:.1f}")
 
     @staticmethod
-    def __draw_board_policy(env: MazeEnvironment, values: Q | dict[State, float], policy: Policy, gamma: float, ax):
+    def __draw_board_policy(
+        env: MazeEnvironment,
+        values: V | Q,
+        policy: Policy,
+        gamma: float,
+        ax,
+    ):
         Info.__draw_board(env.base, ax=ax)
         for s in env.states:
             if not env.base[s].is_terminal:
@@ -63,10 +70,10 @@ class Info:
                             ax.text(s[1] - 0.25, s[0] + 0.1, "↓")
 
     @staticmethod
-    def __draw_graph(graph: MazeGraph, ax, labels: dict[State, str] = None):
+    def __draw_graph(graph: MazeGraph, ax, labels: dict[State, str] | None = None):
         g = nx.DiGraph()
         colors = dict()
-        labels = labels if labels else dict()
+        labels = labels if labels else {}
 
         # Defining nodes
         for node in graph.nodes:
@@ -92,46 +99,54 @@ class Info:
         cbar = plt.colorbar(sm, ax=ax)
         ec = [cmap(norm(weight)) for weight in weights]
 
-        nx.draw(g,
-                pos=pos,
-                labels=labels,
-                edge_color=ec,
-                width=2,
-                font_size=6,
-                with_labels=True,
-                node_color=[colors[node] for node in colors],
-                node_size=750,
-                edgecolors="black",
-                ax=ax
-                )
+        nx.draw(
+            g,
+            pos=pos,
+            labels=labels,
+            edge_color=ec,
+            width=2,
+            font_size=6,
+            with_labels=True,
+            node_color=[colors[node] for node in colors],
+            node_size=750,
+            edgecolors="black",
+            ax=ax,
+        )
 
         return g, colors
 
     @staticmethod
-    def __draw_graph_values(env: MazeEnvironment, values: dict[State, float], ax):
+    def __draw_graph_values(env: MazeEnvironment, vf: dict[State, float], ax):
         graph = env.base
-
         labels: dict[State, str] = dict()
 
         for node in graph.nodes:
             cell = graph.nodes[node]
             if node in env.states:
-                labels[node] = str(len(labels)) + f", {values[node]:.1f}"
+                labels[node] = str(len(labels)) + f", {vf[node]:.1f}"
             else:
                 if isinstance(cell, TeleportCell):
-                    labels[node] = f"{len(labels)}, {env.base.find_position(cell.teleport_to)}"
+                    labels[
+                        node
+                    ] = f"{len(labels)}, {env.base.find_position(cell.teleport_to)}"
                 elif isinstance(cell, WallCell):
                     labels[node] = str(len(labels))
 
         Info.__draw_graph(graph, ax, labels=labels)
 
     @staticmethod
-    def __draw_graph_policy(env: MazeEnvironment, values: Q | dict[State, float], policy: Policy, gamma: float, ax):
+    def __draw_graph_policy(
+        env: MazeEnvironment,
+        vf: V | Q,
+        policy: Policy,
+        gamma: float,
+        ax,
+    ):
         labels = {}
 
         for s in env.states:
             if not env.base[s].is_terminal:
-                a = policy.act(s, env, values, gamma)
+                a = policy.act(s, env, vf, gamma)
                 if a == Action.ACTION_A1:
                     labels[s] = "A1"
                 elif a == Action.ACTION_A2:
@@ -152,20 +167,27 @@ class Info:
             Info.__draw_graph(base, ax=ax)
 
     @staticmethod
-    def draw_values(env: MazeEnvironment, values: dict[State, float], ax=None):
+    def draw_values(env: MazeEnvironment, vf: V | Q, ax=None):
         ax = ax if ax else plt
+        v: dict[State, float] = vf.v_table
         if isinstance(env.base, MazeBoard):
-            Info.__draw_board_values(env, values, ax)
+            Info.__draw_board_values(env, v, ax)
         elif isinstance(env.base, MazeGraph):
-            Info.__draw_graph_values(env, values, ax)
+            Info.__draw_graph_values(env, v, ax)
 
     @staticmethod
-    def draw_policy(env: MazeEnvironment, values: Q | dict[State, float], policy: Policy, gamma: float, ax=None):
+    def draw_policy(
+        env: MazeEnvironment,
+        vf: V | Q,
+        policy: Policy,
+        gamma: float,
+        ax=None,
+    ):
         ax = ax if ax else plt
         if isinstance(env.base, MazeBoard):
-            Info.__draw_board_policy(env, values, policy, gamma, ax)
+            Info.__draw_board_policy(env, vf, policy, gamma, ax)
         elif isinstance(env.base, MazeGraph):
-            Info.__draw_graph_policy(env, values, policy, gamma, ax)
+            Info.__draw_graph_policy(env, vf, policy, gamma, ax)
 
     @staticmethod
     def log_probabilities(env: MazeEnvironment, nof: str):
@@ -174,16 +196,18 @@ class Info:
 
         to_log = list()
         for s, a in env.probabilities:
-            news = env(s, a)
-            for new in news:
+            mdp = env(s, a)
+            for value in mdp:
                 to_log.append(
                     {
                         "State": s,
                         "Action": a,
-                        "Direction": new["direction"],
-                        "Next state": new["next_state"],
-                        "Reward": new["reward"],
-                        "Probability(s+, r | s, a)": env.probabilities[(s, a)][new["direction"]]
+                        "Direction": value["direction"],
+                        "Next state": value["next_state"],
+                        "Reward": value["reward"],
+                        "Probability(s+, r | s, a)": env.probabilities[s, a][
+                            value["direction"]
+                        ],
                     }
                 )
 
@@ -191,9 +215,9 @@ class Info:
             p.write(tabulate(to_log, "keys", "rst"))
 
     @staticmethod
-    def log_q_values(q: Q, nof: str):
+    def log_values(vf: V | Q, nof: str):
         if not os.path.exists("logs"):
             os.mkdir("logs")
 
-        with open(f"./logs/q_values_{nof}.txt", "w") as qv:
-            qv.write(q.__str__())
+        with open(f"./logs/{vf.__class__.__name__.lower()}_values_{nof}.txt", "w") as v:
+            v.write(vf.__str__())

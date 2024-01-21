@@ -4,27 +4,6 @@ from random import choices
 from typing import Callable, Optional
 
 
-class State:
-    def __init__(self, position: list[int]):
-        self.__position: list[int] = position
-
-    def __getitem__(self, key: int):
-        return self.__position[key]
-
-    def __hash__(self):
-        return hash(self.__position.__hash__)
-
-    def __eq__(self, other):
-        return (
-            self.__position == other.__position
-            if isinstance(other, State)
-            else self.__position == list(other)
-        )
-
-    def __str__(self):
-        return str(self.__position)
-
-
 class Cell(ABC):
     """
     Interface class for all maze cells.
@@ -47,7 +26,7 @@ class Cell(ABC):
     def is_terminal(self) -> bool:
         return False
 
-    def __init__(self, reward: Optional[float] = None):
+    def __init__(self, reward: float | None = None):
         self.__reward = reward
 
 
@@ -119,7 +98,7 @@ class TeleportCell(Cell):
 
     def __init__(self):
         super().__init__()
-        self.__teleport_to: Optional[Cell] = None
+        self.__teleport_to: Cell | None = None
 
 
 class WallCell(Cell):
@@ -148,6 +127,27 @@ class CellGen:
         )[0]()
 
 
+class State:
+    def __init__(self, position: list[int]):
+        self.__position: list[int] = position
+
+    def __getitem__(self, key: int):
+        return self.__position[key]
+
+    def __hash__(self):
+        return hash(self.__position.__hash__)
+
+    def __eq__(self, other):
+        return (
+            self.__position == other.__position
+            if isinstance(other, State)
+            else self.__position == list(other)
+        )
+
+    def __str__(self):
+        return str(self.__position)
+
+
 class Direction(Enum):
     RIGHT = auto()
     LEFT = auto()
@@ -170,14 +170,14 @@ class Action(Enum):
         return [Action.ACTION_A1, Action.ACTION_A2, Action.ACTION_A3, Action.ACTION_A4]
 
 
+class EnvType(Enum):
+    STOCHASTIC = auto()
+    DETERMINISTIC = auto()
+
+
 ad_map: dict[Action, Direction] = {
     Action.ACTION_A1: Direction.RIGHT,
     Action.ACTION_A2: Direction.LEFT,
     Action.ACTION_A3: Direction.UP,
     Action.ACTION_A4: Direction.DOWN,
 }
-
-
-class EnvType(Enum):
-    DETERMINISTIC = auto()
-    STOCHASTIC = auto()

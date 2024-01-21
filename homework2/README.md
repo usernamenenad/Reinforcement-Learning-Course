@@ -17,23 +17,26 @@ $1$ (others to $0$) when we're talking about *deterministic MDP* - **then** we'r
 a certain direction. Here, we'll consider that the probabilities of taking any action in any state is always $1$, for every action 
 (meaning, $\pi(a | s) = 1 \text{, } \forall a$). 
 
-$Q$ values are implemented as *dataclass* as well - $V$ values aren't, being a *Q* subset.
+$Q$ and $V$ values are implemented as *dataclasses*. What's specific about those two is that they return a *v_table*
 
-There are two *dynamic programming* algorithms implemented - *Value iteration* and *Policy iteration*.
+- In the case of $Q$ dataclass, for every state the $V$ value is determined by $v(s) = \max_{a}\{q(s, a)\}$
+- In the case of $V$ dataclass, it is trivial, as it's already contained in the class itself.
+
+An algorithm used for determining optimal $Q$ and $V$ values is *value iteration*, namely a *dynamic programming* type of algorithm.
 
 ## Value iteration
 
 We're considering finding the optimal policy using $Q$ values and $V$ values.
 
-### Value iteration using Q values (*deterministic MDP*)
+### Value iteration using $Q$ values (*deterministic MDP*)
 
-![](./images/db_value_q.png)
+![](./images/db.png)
 
-![](./images/dg_value_q.png)
+![](./images/dg.png)
 
-### Value iteration using V values (*stochastic MDP*)
+### Value iteration using $V$ values (*stochastic MDP*)
 
-![](./images/sb_value_v.png)
+![](./images/sb.png)
 
-![](./images/sg_value_v.png)
+![](./images/sg.png)
 

@@ -1,8 +1,4 @@
-from tests.test_db_value_q import *
-from tests.test_db_value_v import *
-
-from tests.test_sb_value_q import *
-from tests.test_sb_value_v import *
-
-from tests.test_dg_value_q import *
-from tests.test_db_value_v import *
+from tests.test_db import *
+from tests.test_dg import *
+from tests.test_sb import *
+from tests.test_sg import *

@@ -119,8 +119,10 @@ class MazeBoard(MazeBase):
     def __init__(self, size: tuple[int, int], specs: list[tuple[float, Callable]]):
         self.__rows_no, self.__cols_no = size
 
-        super().__init__(positions=[[i, j] for i in range(size[0]) for j in range(size[1])],
-                         specs=specs)
+        super().__init__(
+            positions=[[i, j] for i in range(size[0]) for j in range(size[1])],
+            specs=specs,
+        )
 
         self.set_maze()
 
