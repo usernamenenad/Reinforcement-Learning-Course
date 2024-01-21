@@ -128,6 +128,10 @@ class CellGen:
 
 
 class State:
+    @property
+    def position(self) -> list[int]:
+        return self.__position
+
     def __init__(self, position: list[int]):
         self.__position: list[int] = position
 

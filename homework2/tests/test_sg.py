@@ -5,7 +5,7 @@ from maze import *
 DEFAULT_SPECS = [
     (10, lambda: RegularCell(-1)),
     (2, lambda: RegularCell(-10)),
-    (2, lambda: WallCell(-1)),
+    (2, lambda: WallCell(-11)),
     (1, lambda: TerminalCell(-1)),
     (1, lambda: TeleportCell()),
 ]

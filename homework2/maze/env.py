@@ -139,9 +139,17 @@ class MazeEnvironment:
 
         for direction in self.__base.get_directions(state):
             next_state = self.__base.get_from(state, direction)
+
             if isinstance(self.__base.nodes[next_state], WallCell):
                 next_state = state
-            new_cell = self.__base[next_state]
+                new_cell = self.__base[next_state]
+                reward = new_cell.reward
+            elif next_state == state:
+                new_cell = self.__base[next_state]
+                reward = -11
+            else:
+                new_cell = self.__base[next_state]
+                reward = new_cell.reward
 
             if isinstance(new_cell, TeleportCell):
                 next_state = self.__base.find_position(new_cell.teleport_to)
@@ -151,7 +159,7 @@ class MazeEnvironment:
                 {
                     "direction": direction,
                     "next_state": next_state,
-                    "reward": new_cell.reward,
+                    "reward": reward,
                     "probability": self.__probabilities[state, action][direction],
                     "is_terminal": new_cell.is_terminal,
                 }
