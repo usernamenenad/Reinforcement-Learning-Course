@@ -52,8 +52,8 @@ def test_stochastic_board():
     )
     axes[5].set_title("Optimal policy determined by V values")
 
-    Info.log_probabilities(env=env, nof="db")
+    Info.log_probabilities(env=env, nof="sb")
 
-    Info.log_values(vf=q_iteration.q, nof="db")
-    Info.log_values(vf=v_iteration.v, nof="db")
+    Info.log_values(vf=q_iteration.q, nof="sb")
+    Info.log_values(vf=v_iteration.v, nof="sb")
     plt.show()

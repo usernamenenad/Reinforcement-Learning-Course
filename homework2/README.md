@@ -40,3 +40,5 @@ We're considering finding the optimal policy using $Q$ values and $V$ values.
 
 ![](./images/sg.png)
 
+Also, after executing the algorithms, *log files* will appear in *logs* folder. These contain information about generated probabilities of *MDP*,
+as well as optimal $Q$ and $V$ values.

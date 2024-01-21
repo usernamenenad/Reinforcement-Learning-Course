@@ -33,29 +33,33 @@ class Probability:
         self.__probability: dict[tuple[State, Action], dict[Direction, float]] = dict()
 
         for s in states:
-            for a in actions:
-                directions = base.get_directions(s)
-                self.__probability[s, a] = dict()
-                probs = list()
+            directions = base.get_directions(s)
+            probs: dict[Action, dict[Direction, float]] = {}
 
-                match env_type:
-                    case EnvType.DETERMINISTIC:
-                        probs = [
-                            1.0 if direction == ad_map[a] else 0.0
-                            for direction in directions
-                        ]
-                        if 1.0 not in probs:
-                            if len(probs) < 2:
-                                probs = [1.0]
+            match env_type:
+                case EnvType.DETERMINISTIC:
+                    for a in actions:
+                        self.__probability[s, a] = {}
+
+                        for d in directions:
+                            self.__probability[s, a][d] = 1.0 if d == ad_map[a] else 0.0
+
+                case EnvType.STOCHASTIC:
+                    for a in actions:
+                        self.__probability[s, a] = {}
+
+                        if len(directions):
+                            gen = round(
+                                dirichlet(ones(len(directions)), size=1)[0], 3
+                            ).tolist()
+                        else:
+                            gen = [0.0 for _ in Direction.get_all_directions()]
+
+                        for d in Direction.get_all_directions():
+                            if d in directions:
+                                self.__probability[s, a][d] = gen.pop(0)
                             else:
-                                probs[randint(0, len(probs) - 1)] = 1.0
-                    case EnvType.STOCHASTIC:
-                        probs = round(
-                            dirichlet(ones(len(directions)), size=1)[0], 3
-                        ).tolist()
-
-                for i, direction in enumerate(directions):
-                    self.__probability[s, a][direction] = probs[i]
+                                self.__probability[s, a][d] = 0.0
 
     def __getitem__(self, key: tuple[State, Action]) -> dict[Direction, float]:
         return self.__probability[key]

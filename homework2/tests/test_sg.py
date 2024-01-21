@@ -52,8 +52,8 @@ def test_stochastic_graph():
     )
     axes[5].set_title("Optimal policy determined by V values")
 
-    Info.log_probabilities(env=env, nof="db")
+    Info.log_probabilities(env=env, nof="sg")
 
-    Info.log_values(vf=q_iteration.q, nof="db")
-    Info.log_values(vf=v_iteration.v, nof="db")
+    Info.log_values(vf=q_iteration.q, nof="sg")
+    Info.log_values(vf=v_iteration.v, nof="sg")
     plt.show()

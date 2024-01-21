@@ -52,8 +52,8 @@ def test_deterministic_graph():
     )
     axes[5].set_title("Optimal policy determined by V values")
 
-    Info.log_probabilities(env=env, nof="db")
+    Info.log_probabilities(env=env, nof="dg")
 
-    Info.log_values(vf=q_iteration.q, nof="db")
-    Info.log_values(vf=v_iteration.v, nof="db")
+    Info.log_values(vf=q_iteration.q, nof="dg")
+    Info.log_values(vf=v_iteration.v, nof="dg")
     plt.show()
