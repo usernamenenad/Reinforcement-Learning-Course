@@ -45,8 +45,25 @@ $x_3(k + 1) = x_3(k) + TG(k)$
 
 where $T$ is *sample time*. 
 
-A control action (force actuated on a cart) $f$ and sample time $T$ are *inversely* correlated, meaning that the greater the *control span*
+A control action $f$ (force actuated on a cart) and sample time $T$ are *inversely* correlated, meaning that the greater the *control span*
 (larger the interval of possible force magnitudes), the smaller sample time is needed to register the next state and execute the next
-control action. Of course, that interval should be somewhat *rich* in values - let's say that we have only three control magnitudes, or *actions* -
+control action. Of course, that interval should be somewhat *rich* in values - let's say that we have only three control values, or *actions* -
 $-1.0N$, $0N$, $1.0N$. If the cart has somewhat bigger mass, the system is *controllable* - yet if cart has some low mass, acting with 
 $1.0N$ of force can lead to undesired behaviour and *non-controllable* system.
+
+Here, the *SARSA* algorithm is implemented. *SARSA* algorithm updates the *state-action values* $Q$ by 
+
+<div align=center>
+
+$Q(s, a) \leftarrow (1 - \alpha) * Q(s, a) + \alpha * (r + \gamma * Q(s^{+}, a^{+}))$
+
+</div>
+
+where:
+
+- $s$ is the *current state*, and $s^{+}$ is the *next state*
+- $a$ is the *current selected action* based on current policy, and $a^{+}$ is the *next selected action* based on current policy.
+- $\alpha$ is the *filterring* or *learning* factor$
+- $\gamma$ is the *discount factor*
+
+The policy used while *behaving* is $\epsilon$*-greedy*, and the *target* policy is, of course, *fully greedy*.
