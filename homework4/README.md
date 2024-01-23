@@ -47,15 +47,17 @@ where $T$ is *sample time*.
 
 A control action $f$ (force actuated on a cart) and sample time $T$ are *inversely* correlated, meaning that the greater the *control span*
 (larger the interval of possible force magnitudes), the smaller sample time is needed to register the next state and execute the next
-control action. Of course, that interval should be somewhat *rich* in values - let's say that we have only three control values, or *actions* -
-$-1.0N$, $0N$, $1.0N$. If the cart has somewhat bigger mass, the system is *controllable* - yet if cart has some low mass, acting with 
-$1.0N$ of force can lead to undesired behaviour and *non-controllable* system.
+control action. Of course, that interval should be somewhat *rich* in values.
 
-Here, the *SARSA* algorithm is implemented. *SARSA* algorithm updates the *state-action values* $Q$ by 
+Let's say that we have only three control values, or *actions* - $-1.0N$, $0N$, $1.0N$. If the cart (and the pole with it) has somewhat bigger mass, 
+the system is *controllable* - yet if cart has some low mass, acting with $1.0N$ of force can lead to undesired behaviour and 
+*non-controllable* system.
+
+Here, the *SARSA* algorithm is implemented. *SARSA* algorithm updates the *state-action values* $Q$ by using the update formula 
 
 <div align=center>
 
-$Q(s, a) \leftarrow (1 - \alpha) * Q(s, a) + \alpha * (r + \gamma * Q(s^{+}, a^{+}))$
+$Q(s, a) \leftarrow (1 - \alpha)Q(s, a) + \alpha(r + \gammaQ(s^{+}, a^{+}))$
 
 </div>
 
@@ -67,3 +69,7 @@ where:
 - $\gamma$ is the *discount factor*
 
 The policy used while *behaving* is $\epsilon$*-greedy*, and the *target* policy is, of course, *fully greedy*.
+
+## *SARSA* algorithm
+
+![](./images/sarsa.png)

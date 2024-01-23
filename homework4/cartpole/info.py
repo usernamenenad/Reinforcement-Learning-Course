@@ -38,5 +38,8 @@ class Info:
         x = list(results.keys())
         y = [1 if results[i] else -1 for i in results]
         c = ["blue" if results[i] else "red" for i in results]
+        plt.title(
+            f"Successful (blue) and failed (red) actions with respect to iteration number using {nop} algorithm"
+        )
         plt.scatter(x, y, marker=".", s=1, c=c)
         plt.show()
