@@ -13,13 +13,13 @@ The equations of motion are represented using state space representation:
 
 <div align=center>
  
-  $\dot{x_0} = x_1$
+  $x \equiv \dot{x_0} = x_1$
   
-  $\dot{x_1} \equiv F = \frac{4f - m\sin{(x_2)}(3g\cos{(x_3)} - 4lx_3^{2})}{4(m + M) - 3m\cos^{2}{(x_2)}}$
+  $\dot{x} \equiv \dot{x_1} \equiv F = \frac{4f - m\sin{(x_2)}(3g\cos{(x_3)} - 4lx_3^{2})}{4(m + M) - 3m\cos^{2}{(x_2)}}$
   
-  $\dot{x_2} = x_3$
+  $\theta \equiv \dot{x_2} = x_3$
 
-  $\dot{x_3} \equiv G = \frac{(m + M)g\sin{(x_2)} - \cos{(x_2)}(f + ml\sin{(x_2)}x_3^{2})}{l(\frac{4}{3}(m + M) - m\cos^{2}{(x_2)})}$ 
+  $\dot{\theta} \equiv \dot{x_3} \equiv G = \frac{(m + M)g\sin{(x_2)} - \cos{(x_2)}(f + ml\sin{(x_2)}x_3^{2})}{l(\frac{4}{3}(m + M) - m\cos^{2}{(x_2)})}$ 
 
 </div>
 
@@ -27,7 +27,7 @@ where
 
 - $m$ is the *mass of pole*
 - $M$ is the *mass of cart*
-- $l$ is the *half-lenght of pole* 
+- $l$ is the *half-length of pole* 
 
 The whole system is discretized using *forward differentiation* (*Euler1*) method. The state space equations then become 
 
@@ -42,3 +42,11 @@ $x_2(k + 1) = x_2(k) + Tx_3(k)$
 $x_3(k + 1) = x_3(k) + TG(k)$
 
 </div>
+
+where $T$ is *sample time*. 
+
+A control action (force actuated on a cart) $f$ and sample time $T$ are *inversely* correlated, meaning that the greater the *control span*
+(larger the interval of possible force magnitudes), the smaller sample time is needed to register the next state and execute the next
+control action. Of course, that interval should be somewhat *rich* in values - let's say that we have only three control magnitudes, or *actions* -
+$-1.0N$, $0N$, $1.0N$. If the cart has somewhat bigger mass, the system is *controllable* - yet if cart has some low mass, acting with 
+$1.0N$ of force can lead to undesired behaviour and *non-controllable* system.
