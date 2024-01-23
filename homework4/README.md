@@ -4,5 +4,35 @@ A task consists of a pole on a cart (weirdly named *Cartpole*). It is our task t
 
 A state consists of four variables:
 
-- $x$, which is carts' *position*
+- $x$, which is cart's *position*
 - $v$, which is cart's *velocity*
+- $\theta$, which is pole's *angular position*
+- $\dot{\theta}$, which is pole's *angular velocity*
+
+The equations of motion are represented using state space representation:
+
+<p align=center>
+ 
+  $\dot{x_0} = x_1$
+  
+  $\dot{x_1} \equiv F = \frac{4 * f - m * \sin{(x_2)} * (3 * g * \cos{(x_3)} - 4 * l * x_3^{2})}{4 * (m + M) - 3 * m * \cos^{2}{(x_2)}}$
+  
+  $\dot{x_2} = x_3$
+
+  $\dot{x_3} \equiv G = \frac{(m + M) * g * \sin{(x_2)} - \cos{(x_2)} * (f + m * l * \sin{(x_2)} * x_3^{2})}{l * (\frac{4}{3} * (m + M) - m * \cos^{2}{(x_2)})}$ 
+
+</p>
+
+The whole system is discretized using *forward differentiation* (*Euler1*) method. The state space equations then become 
+
+<p align=center>
+
+$x_0(k + 1) = x_0(k) + T * x_1(k)$
+
+$x_1(k + 1) = x_1(k) + T * F(k)$
+
+$x_2(k + 1) = x_2(k) + T * x_3(k)$
+
+$x_3(k + 1) = x_3(k) + T * G(k)$
+
+</p>  
