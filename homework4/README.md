@@ -57,7 +57,7 @@ Here, the *SARSA* algorithm is implemented. *SARSA* algorithm updates the *state
 
 <div align=center>
 
-$Q(s, a) \leftarrow (1 - \alpha)Q(s, a) + \alpha(r + \gammaQ(s^{+}, a^{+}))$
+$Q(s, a) \leftarrow (1 - \alpha)Q(s, a) + \alpha(r + \gamma Q(s^{+}, a^{+}))$
 
 </div>
 
