@@ -1,4 +1,4 @@
-# Homework Task 3: Bandit 
+# Homework Task 1: Bandit 
 
 *Multiarmed bandit* is a a type of reinforcement learning problem where
 the the general idea of a problem is centered around with $k$ different options (actions) and its' objective 
