@@ -1,28 +1,31 @@
 from abc import ABC, abstractmethod
-from random import random, choice
-
-from cartpole.utils import controls, Q
+from random import choice
+from cartpole.utils import *
 
 
 class Policy(ABC):
     @abstractmethod
-    def act(self, q: Q, state: float) -> float:
+    def act(self, q: Q, s: State) -> Action:
         pass
 
 
-class GreedyPolicy(Policy):
-    def act(self, q: Q, state: float) -> float:
-        return max([(a, q[state, a]) for a in controls], key=lambda x: x[1])[0]
-
-
 class RandomPolicy(Policy):
-    def act(self, q: Q, state: float) -> float:
-        return choice(controls)
+    def act(self, q: Q, s: State) -> Action:
+        return choice(actions)
+
+
+class GreedyPolicy(Policy):
+    def act(self, q: Q, s: State) -> Action:
+        return max([(a, q[s, a]) for a in actions], key=lambda x: x[1])[0]
 
 
 class EpsGreedyPolicy(Policy):
-    def __init__(self, epsilon: float = 0.1):
+    def __init__(self, epsilon: float) -> None:
         self.epsilon = epsilon
 
-    def act(self, q: Q, state: float) -> float:
-        return GreedyPolicy().act(q, state) if random() > self.epsilon else RandomPolicy().act(q, state)
+    def act(self, q: Q, s: State) -> Action:
+        return (
+            RandomPolicy().act(q, s)
+            if random() < self.epsilon
+            else GreedyPolicy().act(q, s)
+        )
