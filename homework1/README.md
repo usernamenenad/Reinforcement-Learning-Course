@@ -34,9 +34,10 @@ $q(b) \leftarrow (1 - \alpha)q(b) + \alpha r$
 
 where
 
-- $b$ is the bandit we play
+- $b$ is the *bandit* we play
 - $q$ is the *mean* value
-- $\alpha$ is the learning factor
+- $\alpha$ is the *learning factor*
+- $r$ is the *reward* we get
 
 This allows us not only to forget how many iterations we've had (which saves memory and computing time), but to
 truly filter *anomalies*. To see how anomalies can emerge, consider that every bandit has a chance to return
