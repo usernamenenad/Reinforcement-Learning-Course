@@ -53,7 +53,7 @@ Let's say that we have only three control values, or *actions* - $-1.0N$, $0N$, 
 the system is *controllable* - yet if cart has some low mass, acting with $1.0N$ of force can lead to undesired behaviour and 
 *non-controllable* system, if the sampling time is long. Shorter sampling time will assure us that we can control any system. Of course,
 we have to mention that we're *terminating the episode* after the pole angle is outside the $(-20^{\circ}, 20^{\circ})$ interval,
-or if the cart is outside the $(-5.0, 5.0)$ interval. Conclusion is that *we need to picksufficently small sampling time in order to properly control
+or if the cart is outside the $(-5.0, 5.0)$ interval. Conclusion is that *we need to pick sufficently small sampling time in order to properly control
 the system with desired control values*. 
 
 Here, the *SARSA* algorithm is implemented. *SARSA* algorithm updates the *state-action values* $Q$ by using the update formula 
