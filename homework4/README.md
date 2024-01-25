@@ -68,7 +68,7 @@ where:
 
 - $s$ is the *current state*, and $s^{+}$ is the *next state*
 - $a$ is the *current selected action* based on current policy, and $a^{+}$ is the *next selected action* based on current policy.
-- $\alpha$ is the *filterring* or *learning* factor$
+- $\alpha$ is the *filterring* or *learning* factor
 - $\gamma$ is the *discount factor*
 
 The policy used while *behaving* is $\epsilon$*-greedy*, and the *target* policy is, of course, *fully greedy*.
