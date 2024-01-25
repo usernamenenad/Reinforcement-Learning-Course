@@ -31,7 +31,6 @@ class TD(ABC):
 class SARSA(TD):
     def __init__(self) -> None:
         self.__ss: State = self.__initialize_ss()
-        self.__q: Q = Q()
         self.__result: dict[int, bool] = {}
 
     def __initialize_ss(self) -> State:
@@ -46,11 +45,14 @@ class SARSA(TD):
         self,
         model: Cartpole,
         policy: Policy,
+        actions: list[Action],
         gamma: float = 1.0,
         alpha: float = 0.1,
         iterations: int = 10000,
         T: float = 0.01,
     ) -> Q:
+        self.__q = Q(actions)
+
         with alive_bar(iterations) as bar:
             for i in range(iterations):
                 s = deepcopy(self.__ss)

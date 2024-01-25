@@ -11,16 +11,16 @@ class Policy(ABC):
 
 class RandomPolicy(Policy):
     def act(self, q: Q, s: State) -> Action:
-        return choice(actions)
+        return choice(q.actions)
 
 
 class GreedyPolicy(Policy):
     def act(self, q: Q, s: State) -> Action:
-        return max([(a, q[s, a]) for a in actions], key=lambda x: x[1])[0]
+        return max([(a, q[s, a]) for a in q.actions], key=lambda x: x[1])[0]
 
 
 class EpsGreedyPolicy(Policy):
-    def __init__(self, epsilon: float) -> None:
+    def __init__(self, epsilon: float = 0.1) -> None:
         self.epsilon = epsilon
 
     def act(self, q: Q, s: State) -> Action:

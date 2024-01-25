@@ -1,4 +1,5 @@
 from enum import Enum
+from dataclasses import dataclass
 from math import radians
 from random import random, uniform
 
@@ -12,11 +13,21 @@ ANGLE_20 = round(radians(20), round_prec)
 State = tuple[float, float, float, float]
 Action = float
 
-actions: list[Action] = arange(-0.1, 0.1, 0.05).round(1).tolist()
+# actions: list[Action] = arange(-0.1, 0.1, 0.05).round(1).tolist()
+# actions: list[Action] = [-1.0, 0.0, 1.0]
 
 
+@dataclass
 class Q:
-    def __init__(self) -> None:
+    @property
+    def states(self) -> list[State]:
+        return self.__states
+
+    @property
+    def actions(self) -> list[Action]:
+        return self.__actions
+
+    def __init__(self, actions: list[Action]) -> None:
         self.__q: dict[tuple[State, Action], float] = {}
         self.__states: list[State] = []
         self.__actions: list[Action] = actions
@@ -36,7 +47,7 @@ class Q:
 
     def determine_v(self, s: State) -> Action:
         to_max: list[tuple[Action, float]] = []
-        for a in actions:
+        for a in self.__actions:
             if (s, a) in self.__q:
                 to_max.append((a, self.__q[s, a]))
         return max(to_max, key=lambda x: x[1])[0]

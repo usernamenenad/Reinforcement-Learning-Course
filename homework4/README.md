@@ -51,7 +51,7 @@ control action. Of course, that interval should be somewhat *rich* in values.
 
 Let's say that we have only three control values, or *actions* - $-1.0N$, $0N$, $1.0N$. If the cart (and the pole with it) has somewhat bigger mass, 
 the system is *controllable* - yet if cart has some low mass, acting with $1.0N$ of force can lead to undesired behaviour and 
-*non-controllable* system.
+*non-controllable* system, if the sampling time is long. Shorter sampling time will assure us that we can control any system.
 
 Here, the *SARSA* algorithm is implemented. *SARSA* algorithm updates the *state-action values* $Q$ by using the update formula 
 
@@ -70,6 +70,10 @@ where:
 
 The policy used while *behaving* is $\epsilon$*-greedy*, and the *target* policy is, of course, *fully greedy*.
 
-## *SARSA* algorithm
+## *SARSA* algorithm with appropriate small sampling time
 
 ![](./images/sarsa.png)
+
+## *SARSA* algorithm with long sample time
+
+![](./images/sarsa_long_sample_time.png)
