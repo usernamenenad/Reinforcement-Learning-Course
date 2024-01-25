@@ -74,6 +74,6 @@ The policy used while *behaving* is $\epsilon$*-greedy*, and the *target* policy
 
 ![](./images/sarsa.png)
 
-## *SARSA* algorithm with long sample time
+## *SARSA* algorithm with long sampling time
 
 ![](./images/sarsa_long_sample_time.png)
