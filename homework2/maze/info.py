@@ -104,7 +104,7 @@ class Info:
             pos=pos,
             labels=labels,
             edge_color=ec,
-            width=2,
+            width=1,
             font_size=6,
             with_labels=True,
             node_color=[colors[node] for node in colors],
