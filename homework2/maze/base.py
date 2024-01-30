@@ -1,4 +1,4 @@
-from random import randint, choice
+from random import randint, choice, choices
 from typing import Any
 
 from maze.utils import *
@@ -88,15 +88,13 @@ class MazeGraph(MazeBase):
         #             self.connections[node][direction] = choice(list(self.nodes.keys()))
 
         # CUSTOM NUMBER OF DIRECTIONS USED PER NODE
+        directions = Direction.get_all_directions()
         for node in self.connections:
             if isinstance(self[node], RegularCell):
-                directions = Direction.get_all_directions()
-                no_dir = randint(1, len(directions))
-
-                for _ in range(no_dir):
-                    direction = choice(directions)
-                    directions.remove(direction)
-                    self.connections[node][direction] = choice(list(self.nodes.keys()))
+                possible_directions = choices(directions, k=2)
+                # possible_directions = directions
+                for d in possible_directions:
+                    self.connections[node][d] = choice(list(self.nodes.keys()))
 
 
 class MazeBoard(MazeBase):

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from random import random, randint
+from random import random, randint, choice
 from typing import Any
 
 from numpy import round, ones
@@ -41,8 +41,21 @@ class Probability:
                     for a in actions:
                         self.__probability[s, a] = {}
 
+                        found_direction = False
+
                         for d in directions:
-                            self.__probability[s, a][d] = 1.0 if d == ad_map[a] else 0.0
+                            if d == ad_map[a]:
+                                self.__probability[s, a][d] = 1.0
+                                found_direction = True
+                            else:
+                                self.__probability[s, a][d] = 0.0
+
+                        # What can happen with graphs is that no direction with possible action
+                        # in ad_map can be found, so we "cheat" by adding our action to a random
+                        # direction. If user doesn't want this to happen, comment out the rest of
+                        # the code.
+                        if not found_direction and len(directions):
+                            self.__probability[s, a][choice(directions)] = 1.0
 
                 case EnvType.STOCHASTIC:
                     for a in actions:
