@@ -71,10 +71,6 @@ class V:
         return self.__states
 
     @property
-    def actions(self) -> list[Action]:
-        return self.__actions
-
-    @property
     def v_table(self) -> dict[State, float]:
         return self.__v
 
