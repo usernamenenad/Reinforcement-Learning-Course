@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 
 from blackjack.utils import *
 
@@ -46,7 +47,7 @@ class Agent(ABC):
                         self.__state.has_ace = False
 
     def log_experience(
-            self, rnd: int, exp: list[State | Action | float | Card]
+        self, rnd: int, exp: list[State | Action | float | Optional[Card]]
     ) -> None:
         """
         Used for adding new (State, Action, Gain) pair to the experience.
@@ -75,7 +76,7 @@ class Dealer(Agent):
     def state(self) -> State:
         return super().state
 
-    def __init__(self, state: DealerState = None, name: str = None):
+    def __init__(self, state: Optional[DealerState] = None, name: Optional[str] = None):
         name = name if name else "Dealer"
         super().__init__(state if state else DealerState(), name)
 
@@ -91,7 +92,7 @@ class Player(Agent):
     def state(self) -> State:
         return super().state
 
-    def __init__(self, state: PlayerState = None, name: str = None):
+    def __init__(self, state: Optional[PlayerState] = None, name: Optional[str] = None):
         name = name if name else "Player" + str(Player.no_players)
         Player.no_players += 1
         super().__init__(state if state else PlayerState(), name)

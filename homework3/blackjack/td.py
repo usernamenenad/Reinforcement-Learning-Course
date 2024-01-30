@@ -1,5 +1,6 @@
 import os.path
 from abc import ABC, abstractmethod
+from typing import Optional
 from warnings import filterwarnings
 
 from alive_progress import alive_bar
@@ -19,16 +20,16 @@ class TD(ABC):
         self.alpha = alpha
 
     @abstractmethod
-    def run(self, game: Game, iterations: int):
+    def run(self, game: Game, iterations: int) -> Q:
         pass
 
 
 class QLearning(TD, Observer):
     """
-    An off-policy method.
+    An off-policy TD method.
     """
 
-    def __init__(self, q: Q = None, gamma: float = 1.0, alpha: float = 0.1):
+    def __init__(self, q: Optional[Q] = None, gamma: float = 1.0, alpha: float = 0.1):
         super().__init__(q if q else Q(), gamma, alpha)
 
     def update(self, *new_state):
@@ -40,9 +41,11 @@ class QLearning(TD, Observer):
         if new_s:
             v_plus = self.q.determine_v(new_s)
         else:
-            v_plus = 0
+            v_plus = 0.0
 
-        self.q[s, a] = (1 - self.alpha) * self.q[s, a] + self.alpha * (r + self.gamma * v_plus)
+        self.q[s, a] = (1 - self.alpha) * self.q[s, a] + self.alpha * (
+            r + self.gamma * v_plus
+        )
 
     def run(self, game: Game, iterations: int) -> Q:
         filterwarnings("ignore", category=DeprecationWarning)
@@ -70,22 +73,28 @@ class QLearning(TD, Observer):
 
 
 class SARSA(TD, Observer):
-    def __init__(self, q: Q = None, gamma: float = 1.0, alpha: float = 0.05):
+    """
+    An on-policy TD method.
+    """
+
+    def __init__(self, q: Optional[Q] = None, gamma: float = 1.0, alpha: float = 0.05):
         super().__init__(q if q else Q(), gamma, alpha)
 
     def update(self, *new_state):
         s: State = new_state[0][0]
         a: Action = new_state[0][1]
         r: float = new_state[0][2]
-        new_s: State = new_state[0][3]
-        new_a: Action = new_state[0][4]
+        new_s: Optional[State] = new_state[0][3]
+        new_a: Optional[Action] = new_state[0][4]
 
         if new_s:
             q_plus = self.q[new_s, new_a]
         else:
             q_plus = 0.0
 
-        self.q[s, a] = (1 - self.alpha) * self.q[s, a] + self.alpha * (r + self.gamma * q_plus)
+        self.q[s, a] = (1 - self.alpha) * self.q[s, a] + self.alpha * (
+            r + self.gamma * q_plus
+        )
 
     def run(self, game: Game, iterations: int):
         filterwarnings("ignore", category=DeprecationWarning)

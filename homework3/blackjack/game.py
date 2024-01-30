@@ -21,10 +21,14 @@ class Game(Observable):
     def deck(self) -> CardDeck:
         return self.__deck
 
-    def __init__(self, players: list[Agent] = None, deck: CardDeck = None):
+    def __init__(
+        self, players: Optional[list[Agent]] = None, deck: Optional[CardDeck] = None
+    ):
         super().__init__()
-        self.__players = players if players else [Player() for _ in range(2)]
-        self.__deck = deck if deck else CardDeck()
+        self.__players: list[Agent] = (
+            players if players else [Player() for _ in range(2)]
+        )
+        self.__deck: CardDeck = deck if deck else CardDeck()
 
     def __initialize_round(self) -> None:
         """
@@ -40,7 +44,9 @@ class Game(Observable):
             player.update_total(player_card)
             player.update_total(common_card)
 
-    def __play_round(self, players: list[Agent], policy: Policy, q: Q, rnd: int) -> list[Agent]:
+    def __play_round(
+        self, players: list[Agent], policy: Policy, q: Q, rnd: int
+    ) -> list[Agent]:
         """
         A private game method which simulates one round.
         Returns this round's winners.
@@ -53,10 +59,16 @@ class Game(Observable):
                 action = action if action else policy.act(q, player.state)
 
                 if action == Action.HOLD:
-                    player.log_experience(rnd, [deepcopy(player.state), action, 0.0, None])
+                    player.log_experience(
+                        rnd, [deepcopy(player.state), action, 0.0, None]
+                    )
 
                     # Determine if this is the new max_total.
-                    max_total = player.state.total if player.state.total > max_total else max_total
+                    max_total = (
+                        player.state.total
+                        if player.state.total > max_total
+                        else max_total
+                    )
                     break
 
                 card = self.__deck.draw()
@@ -74,6 +86,7 @@ class Game(Observable):
                     self.notify(old_state, action, 0.0, player.state, new_action)
                     action = new_action
 
+        # Return round winners
         return [player for player in players if player.state.total == max_total]
 
     def play(self, policy: Policy, q: Q, gamma: float = 1.0) -> None:

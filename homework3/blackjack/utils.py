@@ -74,9 +74,9 @@ class Card:
     @property
     def value(self):
         if (
-                self.number == CardNumber.JACK
-                or self.number == CardNumber.DAME
-                or self.number == CardNumber.KING
+            self.number == CardNumber.JACK
+            or self.number == CardNumber.DAME
+            or self.number == CardNumber.KING
         ):
             return 10
         return self.number.value
@@ -149,25 +149,26 @@ class Experience:
 
     def __init__(self):
         """
-        Experiences will be represented as list of (State, Action, float) pairs.
+        Experiences will be represented as list of (State, Action, float, Card) pairs.
         Every index of the list represents a round, i.e. 0th round - index 0 etc.
+        This class is instantiated for each game, for each player.
         """
         self.__experience: list[list[State | Action | float | Card]] = list()
 
     def __iter__(self):
         return iter(self.__experience)
 
-    def __getitem__(self, index: int):
+    def __getitem__(self, index: int) -> list[State | Action | float | Card]:
         return self.__experience[index]
 
-    def __str__(self):
-        to_print = list()
-        for exp in self.__experience:
-            to_print.append({"State": exp[0], "Action": exp[1], "Gain": exp[2]})
+    # def __str__(self):
+    #     to_print = list()
+    #     for exp in self.__experience:
+    #         to_print.append({"State": exp[0], "Action": exp[1], "Gain": exp[2]})
 
-        return tabulate(to_print, headers="keys", tablefmt="rst") + "\r\n"
+    #     return tabulate(to_print, headers="keys", tablefmt="rst") + "\r\n"
 
-    def log(self, exp: [State | Action | float | Card]) -> None:
+    def log(self, exp: list[State | Action | float | Card]) -> None:
         """
         Used for adding new (State, Action, Gain) pair to the experience.
         """
@@ -214,7 +215,7 @@ class Q:
 
     def __getitem__(self, key: tuple[State, Action]) -> float:
         """
-        Returns the reward gotten when ending up in given state and taking the given action.
+        Returns the received reward when ending up in given state and taking the given action.
         """
         return self.q[key]
 

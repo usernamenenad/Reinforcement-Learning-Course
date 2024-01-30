@@ -44,30 +44,19 @@ class Info:
 
             pos = nx.planar_layout(g)
 
-            nx.draw_networkx_nodes(g,
-                                   pos=pos,
-                                   node_size=500,
-                                   node_color=node_colors,
-                                   ax=axes[i])
+            nx.draw_networkx_nodes(
+                g, pos=pos, node_size=500, node_color=node_colors, ax=axes[i]
+            )
 
-            nx.draw_networkx_labels(g,
-                                    pos=pos,
-                                    labels=node_labels,
-                                    font_color="w",
-                                    font_size=11,
-                                    ax=axes[i])
+            nx.draw_networkx_labels(
+                g, pos=pos, labels=node_labels, font_color="w", font_size=11, ax=axes[i]
+            )
 
-            nx.draw_networkx_edges(g,
-                                   pos=pos,
-                                   width=2,
-                                   style="dashed",
-                                   ax=axes[i])
+            nx.draw_networkx_edges(g, pos=pos, width=2, style="dashed", ax=axes[i])
 
-            nx.draw_networkx_edge_labels(g,
-                                         pos=pos,
-                                         edge_labels=edge_labels,
-                                         font_size=12,
-                                         ax=axes[i])
+            nx.draw_networkx_edge_labels(
+                g, pos=pos, edge_labels=edge_labels, font_size=12, ax=axes[i]
+            )
 
             axes[i].set_title(f"{player.name}'s experience")
 
@@ -99,8 +88,12 @@ class Info:
         if not os.path.exists("logs"):
             os.mkdir("logs")
 
-        to_log = f"[Game {game_number}]:\r\n\r\n" + Info.log_experiences(game.players) + "\r\n"
-        
+        to_log = (
+            f"[Game {game_number}]:\r\n\r\n"
+            + Info.log_experiences(game.players)
+            + "\r\n"
+        )
+
         with open(f"./logs/game_log_{nof}.txt", "a") as gl:
             gl.write(to_log)
 

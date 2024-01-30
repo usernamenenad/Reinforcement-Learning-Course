@@ -1,5 +1,6 @@
 import os.path
 from abc import ABC, abstractmethod
+from typing import Optional
 from warnings import filterwarnings
 
 from alive_progress import alive_bar
@@ -7,7 +8,7 @@ from alive_progress import alive_bar
 from blackjack.game import Game
 from blackjack.info import Info
 from blackjack.policy import EpsGreedyPolicy
-from blackjack.utils import Q
+from blackjack.utils import State, Action, Q
 
 
 class MonteCarlo(ABC):
@@ -22,7 +23,7 @@ class MonteCarlo(ABC):
         self.alpha = alpha
 
     @abstractmethod
-    def run(self, game: Game) -> None:
+    def run(self, game: Game, iterations: int = 1000) -> Q:
         pass
 
 
@@ -31,7 +32,7 @@ class IncrMonteCarlo(MonteCarlo):
     A incremental Monte Carlo algorithm.
     """
 
-    def __init__(self, q: Q = None, gamma: float = 1.0, alpha: float = 0.05):
+    def __init__(self, q: Optional[Q] = None, gamma: float = 1.0, alpha: float = 0.05):
         super().__init__(q if q else Q(), gamma, alpha)
 
     def run(self, game: Game, iterations: int = 1000) -> Q:
@@ -52,8 +53,12 @@ class IncrMonteCarlo(MonteCarlo):
                 for player in game.players:
                     for rnd in player.experiences:
                         for part in player.experiences[rnd]:
-                            s, a, g = part[0], part[1], part[2]
-                            self.q[s, a] = (1 - self.alpha) * self.q[s, a] + self.alpha * g
+                            s: State = part[0]
+                            a: Action = part[1]
+                            g: float = part[2]
+                            self.q[s, a] = (1 - self.alpha) * self.q[
+                                s, a
+                            ] + self.alpha * g
 
                         # This DOES NOT mean that we're going to forget experiences.
                         # We only clear experiences for the next game.
