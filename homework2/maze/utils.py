@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 from random import choices
-from typing import Callable, Optional
+from typing import Callable
 
 
 class Cell(ABC):
@@ -10,7 +10,7 @@ class Cell(ABC):
     """
 
     @property
-    def reward(self) -> Optional[float]:
+    def reward(self) -> float | None:
         return self.__reward
 
     @property
@@ -26,7 +26,7 @@ class Cell(ABC):
     def is_terminal(self) -> bool:
         return False
 
-    def __init__(self, reward: Optional[float] = None):
+    def __init__(self, reward: float | None = None):
         self.__reward = reward
 
 
@@ -73,7 +73,7 @@ class TeleportCell(Cell):
     """
 
     @property
-    def reward(self) -> Optional[float]:
+    def reward(self) -> float | None:
         return self.__teleport_to.reward
 
     @property
@@ -81,7 +81,7 @@ class TeleportCell(Cell):
         return 0, 255, 0
 
     @property
-    def teleport_to(self) -> Optional[Cell]:
+    def teleport_to(self) -> Cell | None:
         return self.__teleport_to
 
     @teleport_to.setter
@@ -98,7 +98,7 @@ class TeleportCell(Cell):
 
     def __init__(self):
         super().__init__()
-        self.__teleport_to: Optional[Cell] = None
+        self.__teleport_to: Cell | None = None
 
 
 class WallCell(Cell):

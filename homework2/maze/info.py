@@ -8,7 +8,7 @@ from tabulate import tabulate
 
 from maze.base import MazeGraph, MazeBoard, MazeBase
 from maze.env import MazeEnvironment
-from maze.func import V, Q
+from maze.value_funcs import V, Q
 from maze.policy import Policy
 from maze.utils import *
 

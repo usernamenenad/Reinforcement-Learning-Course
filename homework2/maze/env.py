@@ -1,84 +1,13 @@
-from dataclasses import dataclass
 from random import choice
 from typing import Any
 
 from numpy import round, ones
 from numpy.random import dirichlet
-from tabulate import tabulate
 
 from maze.base import MazeBase
 from maze.utils import *
 
-
-@dataclass
-class Probability:
-    """
-    Models probabilities as dataclass.
-    User has the option to set "deterministic" probabilities,
-    which means that a certain action has always one and only one direction
-    associated with it, or "stochastic" - all random.
-    """
-
-    def __init__(
-        self,
-        base: MazeBase,
-        states: list[State],
-        actions: list[Action],
-        env_type: EnvType,
-    ) -> None:
-        """
-        A wrapper around probabilities.
-        """
-
-        self.__probability: dict[tuple[State, Action], dict[Direction, float]] = dict()
-
-        for s in states:
-            directions = base.get_directions(s)
-            probs: dict[Action, dict[Direction, float]] = {}
-
-            match env_type:
-                case EnvType.DETERMINISTIC:
-                    for a in actions:
-                        self.__probability[s, a] = {}
-
-                        found_direction = False
-
-                        for d in directions:
-                            if d == ad_map[a]:
-                                self.__probability[s, a][d] = 1.0
-                                found_direction = True
-                            else:
-                                self.__probability[s, a][d] = 0.0
-
-                        # What can happen with graphs is that no direction with possible action
-                        # in ad_map can be found, so we "cheat" by adding our action to a random
-                        # direction. If user doesn't want this to happen, comment out the rest of
-                        # the code.
-                        if not found_direction and len(directions):
-                            self.__probability[s, a][choice(directions)] = 1.0
-
-                case EnvType.STOCHASTIC:
-                    for a in actions:
-                        self.__probability[s, a] = {}
-
-                        if len(directions):
-                            gen = round(
-                                dirichlet(ones(len(directions)), size=1)[0], 3
-                            ).tolist()
-                        else:
-                            gen = [0.0 for _ in Direction.get_all_directions()]
-
-                        for d in Direction.get_all_directions():
-                            if d in directions:
-                                self.__probability[s, a][d] = gen.pop(0)
-                            else:
-                                self.__probability[s, a][d] = 0.0
-
-    def __getitem__(self, key: tuple[State, Action]) -> dict[Direction, float]:
-        return self.__probability[key]
-
-    def __iter__(self):
-        return iter(self.__probability)
+Probabilities = dict[tuple[State, Action], dict[Direction, float]]
 
 
 class MazeEnvironment:
@@ -111,7 +40,7 @@ class MazeEnvironment:
         return self.__actions
 
     @property
-    def probabilities(self) -> Probability:
+    def probabilities(self) -> Probabilities:
         return self.__probabilities
 
     def __init__(
@@ -136,12 +65,8 @@ class MazeEnvironment:
 
         self.__actions: list[Action] = Action.get_all_actions()
 
-        self.__probabilities = Probability(
-            base=self.__base,
-            states=self.__states,
-            actions=self.__actions,
-            env_type=self.__type,
-        )
+        self.__probabilities: Probabilities = {}
+        self.__generate_probabilities()
 
     def __call__(self, state: State, action: Action) -> list[dict[str, Any]]:
         """
@@ -179,6 +104,48 @@ class MazeEnvironment:
             )
 
         return mdp
+
+    def __generate_probabilities(self):
+        for s in self.__states:
+            directions = self.__base.get_directions(s)
+
+            match self.__type:
+                case EnvType.DETERMINISTIC:
+                    for a in self.__actions:
+                        self.__probabilities[s, a] = {}
+
+                        found_direction = False
+
+                        for d in directions:
+                            if d == ad_map[a]:
+                                self.__probabilities[s, a][d] = 1.0
+                                found_direction = True
+                            else:
+                                self.__probabilities[s, a][d] = 0.0
+
+                        # What can happen with graphs is that no direction with possible action
+                        # in ad_map can be found, so we "cheat" by adding our action to a random
+                        # direction. If user doesn't want this to happen, comment out the rest of
+                        # the code.
+                        if not found_direction and len(directions):
+                            self.__probabilities[s, a][choice(directions)] = 1.0
+
+                case EnvType.STOCHASTIC:
+                    for a in self.__actions:
+                        self.__probabilities[s, a] = {}
+
+                        if len(directions):
+                            gen = round(
+                                dirichlet(ones(len(directions)), size=1)[0], 3
+                            ).tolist()
+                        else:
+                            gen = [0.0 for _ in Direction.get_all_directions()]
+
+                        for d in Direction.get_all_directions():
+                            if d in directions:
+                                self.__probabilities[s, a][d] = gen.pop(0)
+                            else:
+                                self.__probabilities[s, a][d] = 0.0
 
     def is_terminal(self, s: State) -> bool:
         return self.__base[s].is_terminal

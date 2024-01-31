@@ -68,12 +68,11 @@ class MazeGraph(MazeBase):
     Inherited from MazeBase class - it models a graph.
     """
 
-    def __init__(self, size: int, specs: list[tuple[float, Callable]]):
+    def __init__(self, size: int, specs: list[tuple[float, Callable]]) -> None:
         super().__init__(positions=[[i] for i in range(size)], specs=specs)
-
         self.set_maze()
 
-    def set_maze(self):
+    def set_maze(self) -> None:
         """
         Private method for creating graphs -
         making nodes and random edges.
@@ -91,7 +90,8 @@ class MazeGraph(MazeBase):
         directions = Direction.get_all_directions()
         for node in self.connections:
             if isinstance(self[node], RegularCell):
-                possible_directions = choices(directions, k=2)
+                no_dirs = randint(1, len(directions))
+                possible_directions = choices(directions, k=no_dirs)
                 # possible_directions = directions
                 for d in possible_directions:
                     self.connections[node][d] = choice(list(self.nodes.keys()))
@@ -114,7 +114,9 @@ class MazeBoard(MazeBase):
     def size(self) -> tuple[int, int]:
         return self.__rows_no, self.__cols_no
 
-    def __init__(self, size: tuple[int, int], specs: list[tuple[float, Callable]]):
+    def __init__(
+        self, size: tuple[int, int], specs: list[tuple[float, Callable]]
+    ) -> None:
         self.__rows_no, self.__cols_no = size
 
         super().__init__(
@@ -152,7 +154,7 @@ class MazeBoard(MazeBase):
                 return State([row + 1, col])
         return State([row, col])
 
-    def set_maze(self):
+    def set_maze(self) -> None:
         """
         Private method for creating board -
         making board squares (here named nodes).

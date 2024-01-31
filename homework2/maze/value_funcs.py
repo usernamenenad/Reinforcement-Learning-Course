@@ -1,9 +1,9 @@
 from dataclasses import dataclass
-from random import random, randint
+from random import random, choice
 
+from tabulate import tabulate
 from numpy import ones
 from numpy.random import dirichlet
-from tabulate import tabulate
 
 from maze.base import MazeBase
 from maze.env import MazeEnvironment
@@ -32,14 +32,12 @@ class Q:
     def q_table(self) -> dict[tuple[State, Action], float]:
         return self.__q
 
-    def __init__(
-        self, base: MazeBase, states: list[State], actions: list[Action]
-    ) -> None:
-        self.__states = states
-        self.__actions = actions
+    def __init__(self, env: MazeEnvironment) -> None:
+        self.__states = env.states
+        self.__actions = env.actions
 
         self.__q: dict[tuple[State, Action], float] = {
-            (s, a): -10 * random() if not base[s].is_terminal else 0.0
+            (s, a): -10 * random() if not env.is_terminal(s) else 0.0
             for s in self.__states
             for a in self.__actions
         }
@@ -74,10 +72,10 @@ class V:
     def v_table(self) -> dict[State, float]:
         return self.__v
 
-    def __init__(self, base: MazeBase, states: list[State]) -> None:
-        self.__states: list[State] = states
+    def __init__(self, env: MazeEnvironment) -> None:
+        self.__states: list[State] = env.states
         self.__v: dict[State, float] = {
-            s: -10 * random() if not base[s].is_terminal else 0.0 for s in self.__states
+            s: -10 * random() if not env.is_terminal(s) else 0.0 for s in self.__states
         }
 
     def __getitem__(self, s: State) -> float:

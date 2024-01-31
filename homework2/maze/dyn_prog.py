@@ -5,7 +5,7 @@ from alive_progress import alive_bar
 
 from maze.utils import *
 from maze.env import MazeEnvironment
-from maze.func import Q, V
+from maze.value_funcs import Q, V
 
 
 class ValueIteration(ABC):
@@ -17,17 +17,17 @@ class ValueIteration(ABC):
 class QIteration(ValueIteration):
     def __init__(self, env: MazeEnvironment, gamma: float = 1.0) -> None:
         self.env = env
-        self.q = Q(base=env.base, states=env.states, actions=env.actions)
+        self.q = Q(env=env)
         self.gamma = gamma
 
     def __update_values(self):
         for s in self.env.states:
-            if not self.env.base[s].is_terminal:
+            if not self.env.is_terminal(s):
                 for a in self.env.actions:
                     mdp_return = self.env(s, a)
 
                     # We have to determine the whole Q estimate by using the formula
-                    # q(s, a) = sum(p(s^+, r | s, a) * (r + gamma * max_{a^+}{q(s^+, a^+)}))
+                    # q(s, a) = sum(p(s+, r | s, a) * (r + gamma * max_{a+}{q(s+, a+)}))
                     q_sum = 0.0
                     for mdp in mdp_return:
                         p = mdp["probability"]
@@ -55,9 +55,7 @@ class QIteration(ValueIteration):
 class VIteration(ValueIteration):
     def __init__(self, env: MazeEnvironment, gamma: float = 1.0):
         self.env = env
-
-        self.v = V(base=env.base, states=env.states)
-
+        self.v = V(env=env)
         self.gamma = gamma
 
     def __update_values(self):
@@ -67,7 +65,7 @@ class VIteration(ValueIteration):
                 v = []
 
                 for a in self.env.actions:
-                    # A probability weighted sum
+                    # A probability weighted sum of V values
                     v_sum = 0.0
 
                     mdp_return = self.env(s, a)
@@ -79,7 +77,7 @@ class VIteration(ValueIteration):
 
                     v.append(v_sum)
 
-                # v(s) = max_{a}{sum(p(s^+, r | s, a) * (r + v(s^+)))}
+                # v(s) = max_{a}{sum(p(s+, r | s, a) * (r + v(s+)))}
                 self.v[s] = max(v)
 
     def run(self, eps: float = 0.1, iterations: int = 1000) -> int:

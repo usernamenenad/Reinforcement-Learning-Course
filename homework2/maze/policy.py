@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from maze.env import MazeEnvironment
-from maze.func import Q, V
+from maze.value_funcs import Q, V
 from maze.utils import State, Action
 
 
