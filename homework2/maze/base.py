@@ -17,7 +17,9 @@ class MazeBase(ABC):
     def connections(self) -> dict[State, dict[Direction, State]]:
         return self.__connections
 
-    def __init__(self, positions: list[list[int]], specs: list[tuple[float, Callable]]):
+    def __init__(
+        self, positions: list[list[int]], specs: list[tuple[float, Callable]]
+    ) -> None:
         self.__nodes: dict[State, Cell] = {
             State(position): CellGen()(specs) for position in positions
         }
@@ -32,7 +34,7 @@ class MazeBase(ABC):
     def __iter__(self):
         return iter(self.__nodes)
 
-    def set_teleport(self):
+    def set_teleport(self) -> None:
         """
         Private method for configuring teleport cells - to what
         cells will agent teleport when stepped onto teleport cell.
@@ -126,33 +128,33 @@ class MazeBoard(MazeBase):
 
         self.set_maze()
 
-    def __right(self, position: State) -> State:
+    def __right(self, position: State) -> list[int]:
         row, col = position[0], position[1]
         if col != self.__cols_no - 1:
             if self[row, col + 1].is_steppable:
                 return State([row, col + 1])
-        return State([row, col])
+        return [row, col]
 
-    def __left(self, position: State) -> State:
+    def __left(self, position: State) -> list[int]:
         row, col = position[0], position[1]
         if col != 0:
             if self[row, col - 1].is_steppable:
                 return State([row, col - 1])
-        return State([row, col])
+        return [row, col]
 
-    def __up(self, position: State) -> State:
+    def __up(self, position: State) -> list[int]:
         row, col = position[0], position[1]
         if row != 0:
             if self[row - 1, col].is_steppable:
                 return State([row - 1, col])
-        return State([row, col])
+        return [row, col]
 
-    def __down(self, position: State) -> State:
+    def __down(self, position: State) -> list[int]:
         row, col = position[0], position[1]
         if row != self.__rows_no - 1:
             if self[row + 1, col].is_steppable:
                 return State([row + 1, col])
-        return State([row, col])
+        return [row, col]
 
     def set_maze(self) -> None:
         """
