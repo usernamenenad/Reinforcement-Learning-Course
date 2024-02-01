@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Callable, Optional
+from typing import Callable
 
 from bandit.bandit import Bandit
 from bandit.policy import Policy
@@ -19,7 +19,7 @@ class BanditEnvironment:
         return bandit.pull_leaver() if bandit in self.__bandits else -self.__penalty
 
     def change_environment(
-        self, change_law: Optional[Callable[..., tuple[float, float]]], *args
+        self, change_law: Callable[..., tuple[float, float]], *args
     ) -> None:
         if self.__is_stationary:
             return
@@ -31,8 +31,8 @@ class BanditEnvironment:
         self,
         policy: Policy,
         iterations: int = 10000,
-        changes_at: Optional[list[int]] = None,
-        change_law: Optional[Callable[..., tuple[float, float]]] = None,
+        changes_at: list[int] | None = None,
+        change_law: Callable[..., tuple[float, float]] | None = None,
         alpha: float = 0.1,
     ) -> tuple[dict[Bandit, dict[int, float]], dict[Bandit, list[float]], list[float]]:
         if self.__is_stationary or not change_law:

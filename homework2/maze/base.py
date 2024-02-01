@@ -132,28 +132,28 @@ class MazeBoard(MazeBase):
         row, col = position[0], position[1]
         if col != self.__cols_no - 1:
             if self[row, col + 1].is_steppable:
-                return State([row, col + 1])
+                return [row, col + 1]
         return [row, col]
 
     def __left(self, position: State) -> list[int]:
         row, col = position[0], position[1]
         if col != 0:
             if self[row, col - 1].is_steppable:
-                return State([row, col - 1])
+                return [row, col - 1]
         return [row, col]
 
     def __up(self, position: State) -> list[int]:
         row, col = position[0], position[1]
         if row != 0:
             if self[row - 1, col].is_steppable:
-                return State([row - 1, col])
+                return [row - 1, col]
         return [row, col]
 
     def __down(self, position: State) -> list[int]:
         row, col = position[0], position[1]
         if row != self.__rows_no - 1:
             if self[row + 1, col].is_steppable:
-                return State([row + 1, col])
+                return [row + 1, col]
         return [row, col]
 
     def set_maze(self) -> None:

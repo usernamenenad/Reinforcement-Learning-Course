@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from math import inf
 from random import uniform
 
 from alive_progress import alive_bar
@@ -11,7 +10,7 @@ from cartpole.policy import Policy
 from cartpole.utils import *
 
 x_threshold = 5.0
-o_threshold = round(radians(20), round_prec)
+o_threshold = radians(20)
 
 
 class TD(ABC):
@@ -35,9 +34,9 @@ class SARSA(TD):
 
     def __initialize_ss(self) -> State:
         return (
-            round(uniform(-5.0, 5.0), round_prec),
+            round(uniform(-x_threshold, x_threshold), round_prec),
             0.0,
-            round(uniform(ANGLE_M20, ANGLE_20), round_prec),
+            round(uniform(-o_threshold, o_threshold), round_prec),
             0.0,
         )
 
@@ -55,6 +54,8 @@ class SARSA(TD):
 
         with alive_bar(iterations) as bar:
             for i in range(iterations):
+                if i % 100 == 0:
+                    self.__ss = self.__initialize_ss()
                 s = deepcopy(self.__ss)
                 a = policy.act(self.__q, self.__ss)
                 new_state = model(self.__ss, a, T)
@@ -65,12 +66,12 @@ class SARSA(TD):
                 ):
                     new_action = policy.act(self.__q, new_state)
                     q_plus = self.__q[new_state, new_action]
-                    r = 1
+                    r = 10
                     self.__ss = new_state
                     self.__result[i] = True
                 else:
                     q_plus = 0.0
-                    r = -1
+                    r = -10
                     self.__ss = self.__initialize_ss()
                     self.__result[i] = False
 

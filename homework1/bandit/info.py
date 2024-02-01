@@ -1,6 +1,5 @@
 import os
 from copy import deepcopy
-from typing import Optional
 
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -15,7 +14,7 @@ class Info:
         q_evol: dict[Bandit, dict[int, float]],
         mean_evol: dict[Bandit, list[float]],
         iterations: int,
-        changes_at: Optional[list[int]] = None,
+        changes_at: list[int] | None = None,
     ) -> None:
         sns.set_theme(style="darkgrid")
         _, axes = plt.subplots(
@@ -36,7 +35,7 @@ class Info:
             change_at = copy_changes_at.pop(0)
             popped = 1
             means: list[float] = []
-            q_evols: list[Optional[float]] = []
+            q_evols: list[float | None] = []
             for j in range(iterations + 1):
                 means.append(mean_evol[bandit][popped - 1])
                 q_evols.append(q_evol[bandit][j] if j in q_evol[bandit] else None)

@@ -20,16 +20,16 @@ class Bandit:
     def span(self, value: float):
         self.__span = value
 
-    def __init__(self, mean: float, span: float):
+    def __init__(self, mean: float, span: float) -> None:
         self.mean = mean
         self.span = span
         self.id = Bandit.id
         Bandit.id += 1
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.id)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"bandit{self.id}"
 
     def pull_leaver(self) -> float:

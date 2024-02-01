@@ -5,10 +5,7 @@ from random import random, uniform
 
 from numpy import arange
 
-round_prec = 2
-
-ANGLE_M20 = round(radians(-20), round_prec)
-ANGLE_20 = round(radians(20), round_prec)
+round_prec = 3
 
 State = tuple[float, float, float, float]
 Action = float
