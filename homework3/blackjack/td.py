@@ -57,7 +57,7 @@ class QLearning(TD, Observer):
         with alive_bar(iterations) as bar:
             for i in range(iterations):
                 # Play a game
-                game.play(EpsGreedyPolicy(epsilon=0.1), self.q, self.gamma)
+                game.play(self.q, self.gamma)
 
                 # Log game information in a text file
                 Info.log_game(game, i, "ql")
@@ -106,7 +106,7 @@ class SARSA(TD, Observer):
         with alive_bar(iterations) as bar:
             for i in range(iterations):
                 # Play a game
-                game.play(EpsGreedyPolicy(epsilon=0.1), self.q, self.gamma)
+                game.play(self.q, self.gamma)
 
                 Info.log_game(game, i, "sarsa")
 

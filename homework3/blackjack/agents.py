@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 from blackjack.utils import *
+from blackjack.policy import *
 
 
 class Agent(ABC):
@@ -15,21 +16,18 @@ class Agent(ABC):
         return self.__state
 
     @property
-    def experiences(self) -> dict[int, Experience]:
-        return self.__experiences
+    def policy(self) -> Policy:
+        return self.__policy
 
     @property
     def name(self) -> str:
         return self.__name
 
     @abstractmethod
-    def __init__(self, state: State, name: str):
+    def __init__(self, state: State, policy: Policy, name: str):
         self.__state = state
-        self.__experiences: dict[int, Experience] = dict()
+        self.__policy = policy
         self.__name = name
-
-    def __str__(self):
-        return self.__name
 
     def update_total(self, card: Card) -> None:
         match card.number:
@@ -46,39 +44,41 @@ class Agent(ABC):
                         self.__state.total -= 10
                         self.__state.has_ace = False
 
-    def log_experience(
-        self, rnd: int, exp: list[State | Action | float | Optional[Card]]
-    ) -> None:
-        """
-        Used for adding new (State, Action, Gain) pair to the experience.
-        """
-        if rnd not in self.__experiences:
-            self.__experiences[rnd] = Experience()
-        self.__experiences[rnd].log(exp)
+    def act(self, q: Q, s: State) -> Action:
+        return self.__policy.act(q, s)
 
-    def build_gains(self, rnd: int, result: float, gamma: float) -> None:
-        """
-        Used for "building gains"; determining the gains starting from every state.
-        """
-        self.__experiences[rnd].build(result, gamma)
-
-    def reset(self):
+    def reset(self) -> None:
         self.__state.reset()
 
 
 class Dealer(Agent):
     """
     A dealer agent.
-    This agent is deprecated from Level 2 onwards.
     """
 
     @property
     def state(self) -> State:
         return super().state
 
-    def __init__(self, state: Optional[DealerState] = None, name: Optional[str] = None):
-        name = name if name else "Dealer"
-        super().__init__(state if state else DealerState(), name)
+    @property
+    def policy(self) -> Policy:
+        return super().policy
+
+    @property
+    def name(self) -> str:
+        return super().name
+
+    def __init__(
+        self,
+        state: State | None = None,
+        policy: Policy | None = None,
+        name: str = "Dealer",
+    ):
+        super().__init__(
+            state if state is not None else DealerState(),
+            policy if policy is not None else DealerPolicy(),
+            name,
+        )
 
 
 class Player(Agent):
@@ -92,7 +92,44 @@ class Player(Agent):
     def state(self) -> State:
         return super().state
 
-    def __init__(self, state: Optional[PlayerState] = None, name: Optional[str] = None):
-        name = name if name else "Player" + str(Player.no_players)
+    @property
+    def policy(self) -> Policy:
+        return super().policy
+
+    @property
+    def name(self) -> str:
+        return super().name
+
+    @property
+    def experiences(self) -> dict[int, Experience]:
+        return self.__experiences
+
+    def __init__(
+        self,
+        state: State | None = None,
+        policy: Policy | None = None,
+        name: str | None = None,
+    ):
         Player.no_players += 1
-        super().__init__(state if state else PlayerState(), name)
+        super().__init__(
+            state if state is not None else PlayerState(),
+            policy if policy is not None else EpsGreedyPolicy(),
+            name if name is not None else f"Player{Player.no_players}",
+        )
+        self.__experiences: dict[int, Experience] = {}
+
+    def log_experience(
+        self, rnd: int, exp: list[State | Action | float | Card | None]
+    ) -> None:
+        """
+        Used for adding new (State, Action, Gain) pair to the experience.
+        """
+        if rnd not in self.__experiences:
+            self.__experiences[rnd] = Experience()
+        self.__experiences[rnd].log(exp)
+
+    def build_gains(self, rnd: int, result: float, gamma: float) -> None:
+        """
+        Used for "building gains"; determining the gains starting from every state.
+        """
+        self.__experiences[rnd].build(result, gamma)
