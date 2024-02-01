@@ -1,5 +1,4 @@
 from copy import copy, deepcopy
-from typing import Optional
 
 from observer import Observable
 
@@ -51,7 +50,7 @@ class Game(Observable):
         Returns this round's winners.
         """
         max_total = 0
-        action: Optional[Action] = None
+        action: Action | None = None
 
         for player in players:
             while True:

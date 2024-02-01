@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Optional
 
 from blackjack.utils import *
 from blackjack.policy import *
@@ -24,7 +23,7 @@ class Agent(ABC):
         return self.__name
 
     @abstractmethod
-    def __init__(self, state: State, policy: Policy, name: str):
+    def __init__(self, state: State, policy: Policy, name: str) -> None:
         self.__state = state
         self.__policy = policy
         self.__name = name
@@ -73,7 +72,7 @@ class Dealer(Agent):
         state: State | None = None,
         policy: Policy | None = None,
         name: str = "Dealer",
-    ):
+    ) -> None:
         super().__init__(
             state if state is not None else DealerState(),
             policy if policy is not None else DealerPolicy(),
@@ -109,7 +108,7 @@ class Player(Agent):
         state: State | None = None,
         policy: Policy | None = None,
         name: str | None = None,
-    ):
+    ) -> None:
         Player.no_players += 1
         super().__init__(
             state if state is not None else PlayerState(),

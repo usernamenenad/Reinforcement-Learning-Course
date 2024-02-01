@@ -14,7 +14,7 @@ from blackjack.utils import State, Action, Q
 
 class TD(ABC):
     @abstractmethod
-    def __init__(self, q: Q, gamma: float, alpha: float):
+    def __init__(self, q: Q, gamma: float, alpha: float) -> None:
         self.q = q
         self.gamma = gamma
         self.alpha = alpha
@@ -29,10 +29,12 @@ class QLearning(TD, Observer):
     An off-policy TD method.
     """
 
-    def __init__(self, q: Optional[Q] = None, gamma: float = 1.0, alpha: float = 0.1):
+    def __init__(
+        self, q: Optional[Q] = None, gamma: float = 1.0, alpha: float = 0.1
+    ) -> None:
         super().__init__(q if q else Q(), gamma, alpha)
 
-    def update(self, *new_state):
+    def update(self, *new_state) -> None:
         s: State = new_state[0][0]
         a: Action = new_state[0][1]
         r: float = new_state[0][2]
@@ -64,6 +66,8 @@ class QLearning(TD, Observer):
 
                 for player in game.players:
                     for rnd in player.experiences:
+                        # This DOES NOT mean that we're going to forget experiences.
+                        # We only clear experiences for the next game.
                         player.experiences[rnd].clear()
 
                 bar()
@@ -77,10 +81,12 @@ class SARSA(TD, Observer):
     An on-policy TD method.
     """
 
-    def __init__(self, q: Optional[Q] = None, gamma: float = 1.0, alpha: float = 0.05):
-        super().__init__(q if q else Q(), gamma, alpha)
+    def __init__(
+        self, q: Q | None = None, gamma: float = 1.0, alpha: float = 0.05
+    ) -> None:
+        super().__init__(q if q is not None else Q(), gamma, alpha)
 
-    def update(self, *new_state):
+    def update(self, *new_state) -> None:
         s: State = new_state[0][0]
         a: Action = new_state[0][1]
         r: float = new_state[0][2]
@@ -96,7 +102,7 @@ class SARSA(TD, Observer):
             r + self.gamma * q_plus
         )
 
-    def run(self, game: Game, iterations: int):
+    def run(self, game: Game, iterations: int) -> Q:
         filterwarnings("ignore", category=DeprecationWarning)
         print("Starting SARSA...")
 
@@ -108,10 +114,13 @@ class SARSA(TD, Observer):
                 # Play a game
                 game.play(self.q, self.gamma)
 
+                # Log game information in a text file
                 Info.log_game(game, i, "sarsa")
 
                 for player in game.players:
                     for rnd in player.experiences:
+                        # This DOES NOT mean that we're going to forget experiences.
+                        # We only clear experiences for the next game.
                         player.experiences[rnd].clear()
 
                 bar()

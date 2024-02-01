@@ -32,7 +32,9 @@ class IncrMonteCarlo(MonteCarlo):
     A incremental Monte Carlo algorithm.
     """
 
-    def __init__(self, q: Optional[Q] = None, gamma: float = 1.0, alpha: float = 0.05):
+    def __init__(
+        self, q: Optional[Q] = None, gamma: float = 1.0, alpha: float = 0.05
+    ) -> None:
         super().__init__(q if q else Q(), gamma, alpha)
 
     def run(self, game: Game, iterations: int = 1000) -> Q:

@@ -21,7 +21,7 @@ class GreedyPolicy(Policy):
 
 
 class EpsGreedyPolicy(Policy):
-    def __init__(self, epsilon: float = 0.1):
+    def __init__(self, epsilon: float = 0.1) -> None:
         self.epsilon = epsilon
 
     def act(self, q: Q, s: State) -> Action:
