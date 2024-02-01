@@ -74,7 +74,7 @@ class Dealer(Agent):
         name: str = "Dealer",
     ) -> None:
         super().__init__(
-            state if state is not None else DealerState(),
+            state if state is not None else State(),
             policy if policy is not None else DealerPolicy(),
             name,
         )
@@ -85,7 +85,8 @@ class Player(Agent):
     A player agent.
     """
 
-    no_players = 0  # Using this just to name players, not much importance.
+    # Using this just to name players, not much importance.
+    no_players = 0
 
     @property
     def state(self) -> State:
@@ -111,7 +112,7 @@ class Player(Agent):
     ) -> None:
         Player.no_players += 1
         super().__init__(
-            state if state is not None else PlayerState(),
+            state if state is not None else State(),
             policy if policy is not None else EpsGreedyPolicy(),
             name if name is not None else f"Player{Player.no_players}",
         )

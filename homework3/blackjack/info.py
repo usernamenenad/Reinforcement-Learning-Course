@@ -112,7 +112,7 @@ class Info:
 
         to_log = []
 
-        for state in q.all_states:
+        for state in q.states:
             action = GreedyPolicy().act(q, state)
             to_log.append({"State": state, "Action": action})
 

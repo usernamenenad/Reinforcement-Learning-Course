@@ -1,6 +1,5 @@
 import os.path
 from abc import ABC, abstractmethod
-from typing import Optional
 from warnings import filterwarnings
 
 from alive_progress import alive_bar
@@ -30,9 +29,9 @@ class QLearning(TD, Observer):
     """
 
     def __init__(
-        self, q: Optional[Q] = None, gamma: float = 1.0, alpha: float = 0.1
+        self, q: Q | None = None, gamma: float = 1.0, alpha: float = 0.1
     ) -> None:
-        super().__init__(q if q else Q(), gamma, alpha)
+        super().__init__(q if q is not None else Q(), gamma, alpha)
 
     def update(self, *new_state) -> None:
         s: State = new_state[0][0]
@@ -90,8 +89,8 @@ class SARSA(TD, Observer):
         s: State = new_state[0][0]
         a: Action = new_state[0][1]
         r: float = new_state[0][2]
-        new_s: Optional[State] = new_state[0][3]
-        new_a: Optional[Action] = new_state[0][4]
+        new_s: State | None = new_state[0][3]
+        new_a: Action | None = new_state[0][4]
 
         if new_s:
             q_plus = self.q[new_s, new_a]

@@ -33,9 +33,9 @@ class IncrMonteCarlo(MonteCarlo):
     """
 
     def __init__(
-        self, q: Optional[Q] = None, gamma: float = 1.0, alpha: float = 0.05
+        self, q: Q | None = None, gamma: float = 1.0, alpha: float = 0.05
     ) -> None:
-        super().__init__(q if q else Q(), gamma, alpha)
+        super().__init__(q if q is not None else Q(), gamma, alpha)
 
     def run(self, game: Game, iterations: int = 1000) -> Q:
         filterwarnings("ignore", category=DeprecationWarning)

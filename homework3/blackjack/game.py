@@ -24,7 +24,7 @@ class Game(Observable):
         players: list[Player],
         dealer: Dealer | None = None,
         deck: CardDeck | None = None,
-    ):
+    ) -> None:
         super().__init__()
         self.__players: list[Player] = players
         self.__dealer: Dealer | None = dealer

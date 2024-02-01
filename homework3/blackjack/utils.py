@@ -72,7 +72,7 @@ class Card:
     suit: CardSuit
 
     @property
-    def value(self):
+    def value(self) -> int:
         if (
             self.number == CardNumber.JACK
             or self.number == CardNumber.DAME
@@ -81,18 +81,18 @@ class Card:
             return 10
         return self.number.value
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{repr(self.number)}{repr(self.suit)}"
 
 
 class CardDeck:
-    def __init__(self, no_sets=5):
-        self.__no_sets = no_sets
+    def __init__(self, no_sets: int = 5) -> None:
+        self.__no_sets: int = no_sets
         self.__deck: list[Card] = list()
         self.__reshuffle()
 
-    def __str__(self):
-        s = str()
+    def __str__(self) -> str:
+        s = ""
         for card in self.__deck:
             s += repr(card) + " "
 
@@ -121,54 +121,42 @@ class State:
     total: int = 0
     has_ace: bool = False
 
-    def reset(self):
+    def __hash__(self) -> int:
+        return hash(astuple(self))
+
+    def reset(self) -> None:
         self.total = 0
         self.has_ace = False
-
-
-@dataclass
-class DealerState(State):
-    pass
-
-
-@dataclass
-class PlayerState(State):
-    def __hash__(self):
-        return hash(astuple(self))
 
 
 class Action(Enum):
     HIT = 0
     HOLD = 1
 
+    def get_all_actions():
+        return [Action.HIT, Action.HOLD]
+
 
 class Experience:
     @property
-    def experience(self) -> list[list[State | Action | float | Card]]:
+    def experience(self) -> list[list[State | Action | float | Card | None]]:
         return self.__experience
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Experiences will be represented as list of (State, Action, float, Card) pairs.
         Every index of the list represents a round, i.e. 0th round - index 0 etc.
         This class is instantiated for each game, for each player.
         """
-        self.__experience: list[list[State | Action | float | Card]] = list()
+        self.__experience: list[list[State | Action | float | Card | None]] = []
 
     def __iter__(self):
         return iter(self.__experience)
 
-    def __getitem__(self, index: int) -> list[State | Action | float | Card]:
+    def __getitem__(self, index: int) -> list[State | Action | float | Card | None]:
         return self.__experience[index]
 
-    # def __str__(self):
-    #     to_print = list()
-    #     for exp in self.__experience:
-    #         to_print.append({"State": exp[0], "Action": exp[1], "Gain": exp[2]})
-
-    #     return tabulate(to_print, headers="keys", tablefmt="rst") + "\r\n"
-
-    def log(self, exp: list[State | Action | float | Card]) -> None:
+    def log(self, exp: list[State | Action | float | Card | None]) -> None:
         """
         Used for adding new (State, Action, Gain) pair to the experience.
         """
@@ -188,7 +176,7 @@ class Experience:
                 discount *= gamma
             exp[2] = gain
 
-    def clear(self):
+    def clear(self) -> None:
         self.__experience.clear()
 
 
@@ -198,36 +186,40 @@ class Q:
     Class for representing Q estimates.
     """
 
-    def __init__(self):
-        self.all_states: list[State] = list()
+    @property
+    def states(self) -> list[State]:
+        return self.__states
+
+    def __init__(self) -> None:
+        self.__states: list[State] = list()
         for total in range(4, 22):
             if total not in range(4, 12):
-                self.all_states.append(PlayerState(total=total, has_ace=False))
-                self.all_states.append(PlayerState(total=total, has_ace=True))
+                self.__states.append(State(total=total, has_ace=False))
+                self.__states.append(State(total=total, has_ace=True))
                 continue
-            self.all_states.append(PlayerState(total=total, has_ace=False))
+            self.__states.append(State(total=total, has_ace=False))
 
-        self.all_actions: list[Action] = [Action.HOLD, Action.HIT]
+        self.__actions: list[Action] = [Action.HOLD, Action.HIT]
 
-        self.q: dict[tuple[State, Action], float] = {
-            (s, a): 0.0 for s in self.all_states for a in self.all_actions
+        self.__q: dict[tuple[State, Action], float] = {
+            (s, a): 0.0 for s in self.__states for a in self.__actions
         }
 
     def __getitem__(self, key: tuple[State, Action]) -> float:
         """
         Returns the received reward when ending up in given state and taking the given action.
         """
-        return self.q[key]
+        return self.__q[key]
 
-    def __setitem__(self, key: tuple[State, Action], gain: float):
-        self.q[key] = gain
+    def __setitem__(self, key: tuple[State, Action], gain: float) -> None:
+        self.__q[key] = gain
 
-    def __str__(self):
+    def __str__(self) -> str:
         to_repr = []
-        for s, a in self.q:
-            to_repr.append({"State": s, "Action": a, "Value": self.q[(s, a)]})
+        for s, a in self.__q:
+            to_repr.append({"State": s, "Action": a, "Value": self.__q[(s, a)]})
 
         return tabulate(to_repr, headers="keys", tablefmt="rst")
 
-    def determine_v(self, s: State):
-        return max([self.q[s, a] for a in self.all_actions])
+    def determine_v(self, s: State) -> float:
+        return max([self.__q[s, a] for a in self.__actions])
