@@ -38,7 +38,7 @@ class Q:
     def __setitem__(self, key: tuple[State, Action], value: float) -> None:
         self.__q[key] = value
 
-    def add_state(self, state: State):
+    def add_state(self, state: State) -> None:
         if state not in self.__states:
             self.__states.append(state)
 

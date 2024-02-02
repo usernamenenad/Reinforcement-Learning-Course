@@ -10,7 +10,7 @@ from cartpole.policy import Policy
 from cartpole.utils import *
 
 x_threshold = 5.0
-o_threshold = radians(20)
+o_threshold = round(radians(20), round_prec)
 
 
 class TD(ABC):
