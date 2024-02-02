@@ -12,13 +12,12 @@ class Cartpole:
         self.M = M
         self.l = L / 2
 
-    def __call__(self, ss: State, a: Action, T: float) -> State:
-        return (
-            round(ss[0] + T * ss[1], round_prec),
-            round(ss[1] + T * self.__F(ss, a), round_prec),
-            round(ss[2] + T * ss[3], round_prec),
-            round(ss[3] + T * self.__G(ss, a), round_prec),
-        )
+    def __call__(self, ss: State, a: Action, T: float) -> None:
+
+        ss[0] = ss[0] + T * ss[1]
+        ss[1] = ss[1] + T * self.__F(ss, a)
+        ss[2] = ss[2] + T * ss[3]
+        ss[3] = ss[3] + T * self.__G(ss, a)
 
     def __F(self, ss: State, f: Action) -> float:
         x = ss[0]

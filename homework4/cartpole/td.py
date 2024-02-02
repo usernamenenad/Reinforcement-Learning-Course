@@ -10,7 +10,7 @@ from cartpole.policy import Policy
 from cartpole.utils import *
 
 x_threshold = 5.0
-o_threshold = round(radians(20), round_prec)
+o_threshold = radians(20)
 
 
 class TD(ABC):
@@ -29,15 +29,26 @@ class TD(ABC):
 
 class SARSA(TD):
     def __init__(self) -> None:
-        self.__ss: State = self.__initialize_ss()
+        self.__ss: State | None = None
         self.__result: dict[int, bool] = {}
 
     def __initialize_ss(self) -> State:
-        return (
-            round(uniform(-x_threshold, x_threshold), round_prec),
+        return State(
+            uniform(-x_threshold, x_threshold),
             0.0,
-            round(uniform(-o_threshold, o_threshold), round_prec),
+            uniform(-o_threshold, o_threshold),
             0.0,
+        )
+
+    def __discretise_state(self) -> State:
+        """
+        Discretise the state.
+        """
+        return State(
+            round(self.__ss.x, round_prec),
+            round(self.__ss.x_dot, round_prec),
+            round(self.__ss.o, round_prec),
+            round(self.__ss.o_dot, round_prec),
         )
 
     def run(
@@ -47,7 +58,7 @@ class SARSA(TD):
         actions: list[Action],
         gamma: float = 1.0,
         alpha: float = 0.1,
-        iterations: int = 10000,
+        iterations: int = 20000,
         T: float = 0.01,
     ) -> Q:
         self.__q = Q(actions)
@@ -56,18 +67,21 @@ class SARSA(TD):
             for i in range(iterations):
                 if i % 100 == 0:
                     self.__ss = self.__initialize_ss()
-                s = deepcopy(self.__ss)
-                a = policy.act(self.__q, self.__ss)
-                new_state = model(self.__ss, a, T)
+                s: State = self.__discretise_state()
+                a = policy.act(self.__q, s)
+
+                # Run the model
+                model(self.__ss, a, T)
 
                 if (
-                    -x_threshold < new_state[0] < x_threshold
-                    and -o_threshold < new_state[2] < o_threshold
+                    -x_threshold < self.__ss[0] < x_threshold
+                    and -o_threshold < self.__ss[0] < o_threshold
                 ):
-                    new_action = policy.act(self.__q, new_state)
-                    q_plus = self.__q[new_state, new_action]
+                    # Discretise the state because of the Q dictionary
+                    new_s: State = self.__discretise_state()
+                    new_action = policy.act(self.__q, new_s)
+                    q_plus = self.__q[new_s, new_action]
                     r = 10
-                    self.__ss = new_state
                     self.__result[i] = True
                 else:
                     q_plus = 0.0
@@ -83,5 +97,5 @@ class SARSA(TD):
 
             Info.log_q_values(self.__q, "sarsa")
             Info.log_optimal_policy(self.__q, "sarsa")
-            Info.plot_results(self.__result, "sarsa")
+            Info.log_results(self.__result, "sarsa")
             return self.__q
