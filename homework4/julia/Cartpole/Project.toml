@@ -1,0 +1,4 @@
+name = "Cartpole"
+uuid = "065cc8bb-5b5a-497c-b640-4f2869610709"
+authors = ["Nenad <radovic.nenad158@gmail.com>"]
+version = "0.1.0"

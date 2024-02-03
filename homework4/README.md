@@ -4,22 +4,22 @@ A task consists of a pole on a cart (weirdly named *Cartpole*). It is our task t
 
 A state consists of four variables:
 
-- $x$, which is cart's *position*
-- $v$, which is cart's *velocity*
-- $\theta$, which is pole's *angular position*
-- $\dot{\theta}$, which is pole's *angular velocity*
+- $x$, which is cart's *position*. Using state space representation, this will be $x_0$.
+- $v$, which is cart's *velocity*. Using state space representation, this will be $x_1$.
+- $\theta$, which is pole's *angular position*. Using state space representation, this will be $x_2$.
+- $\dot{\theta}$, which is pole's *angular velocity*. Using state space representation, this will be $x_3$.
 
-The equations of motion are represented using state space representation:
+The equations of motion represented using state space representation are:
 
 <div align=center>
  
-  $x \equiv \dot{x_0} = x_1$
+  $\dot{x_0} = x_1$
   
-  $\dot{x} \equiv \dot{x_1} \equiv F = \frac{4f - m\sin{(x_2)}(3g\cos{(x_3)} - 4lx_3^{2})}{4(m + M) - 3m\cos^{2}{(x_2)}}$
+  $\dot{x_1} \equiv F = \frac{4f - m\sin{(x_2)}(3g\cos{(x_3)} - 4lx_3^{2})}{4(m + M) - 3m\cos^{2}{(x_2)}}$
   
-  $\theta \equiv \dot{x_2} = x_3$
+  $\dot{x_2} = x_3$
 
-  $\dot{\theta} \equiv \dot{x_3} \equiv G = \frac{(m + M)g\sin{(x_2)} - \cos{(x_2)}(f + ml\sin{(x_2)}x_3^{2})}{l(\frac{4}{3}(m + M) - m\cos^{2}{(x_2)})}$ 
+  $\dot{x_3} \equiv G = \frac{(m + M)g\sin{(x_2)} - \cos{(x_2)}(f + ml\sin{(x_2)}x_3^{2})}{l(\frac{4}{3}(m + M) - m\cos^{2}{(x_2)})}$ 
 
 </div>
 
