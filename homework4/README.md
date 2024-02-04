@@ -15,7 +15,7 @@ The equations of motion represented using state space representation are:
  
   $\dot{x_0} = x_1$
   
-  $\dot{x_1} \equiv F = \frac{4f - m\sin{(x_2)}(3g\cos{(x_3)} - 4lx_3^{2})}{4(m + M) - 3m\cos^{2}{(x_2)}}$
+  $\dot{x_1} \equiv F = \frac{4f - m\sin{(x_2)}(3g\cos{(x_2)} - 4lx_3^{2})}{4(m + M) - 3m\cos^{2}{(x_2)}}$
   
   $\dot{x_2} = x_3$
 

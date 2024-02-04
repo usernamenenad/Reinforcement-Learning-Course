@@ -1,5 +1,3 @@
-using Distributions
-
 const g = 9.81
 const x_threshold = 5.0
 const θ_threshold = deg2rad(20)
@@ -33,7 +31,7 @@ const Action = Float64
 mutable struct Q
     q::Dict{Tuple{State,Action},Float64}
 
-    Q(q=Dict{Tuple{State,Action},Float64}()) = new(q)
+    Q() = new(Dict{Tuple{State,Action},Float64}())
 end
 
 @inline function Base.getindex(q::Q, state::State, action::Action)::Float64

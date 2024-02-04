@@ -1,6 +1,8 @@
 using Cartpole
 
-model = Cartpole.Model(1.0, 1.0, 1.0)
-alg = Cartpole.TDAlgorithm()
+model = Model(1.0, 1.0, 1.0)
+alg = TDAlgorithm(γ=0.9)
 
-Cartpole.SARSA(alg, model, [-1.0, 0.0, 1.0])
+SARSA(alg, model, [-1.0, 0.0, 1.0])
+
+log_results(alg.results)

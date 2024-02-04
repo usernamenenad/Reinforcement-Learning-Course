@@ -4,7 +4,7 @@ mutable struct Model
     l::Float64
     state::State
 
-    Model(m::Float64, M::Float64, L::Float64, state::State=State(0.0, 0.0, 0.0, 0.0)) = new(m, M, L / 2, state)
+    Model(m::Float64, M::Float64, L::Float64) = new(m, M, L / 2, State(0.0, 0.0, 0.0, 0.0))
 end
 
 function F(model::Model, u::Action)::Float64
