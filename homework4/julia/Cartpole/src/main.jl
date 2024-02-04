@@ -1,4 +1,6 @@
-include("Cartpole.jl")
-using .Cartpole
+using Cartpole
 
-m = Model(1.0, 1.0, 0.0)
+model = Cartpole.Model(1.0, 1.0, 1.0)
+alg = Cartpole.TDAlgorithm()
+
+Cartpole.SARSA(alg, model, [-1.0, 0.0, 1.0])
