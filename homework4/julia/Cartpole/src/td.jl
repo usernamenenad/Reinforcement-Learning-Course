@@ -20,7 +20,7 @@ function SARSA(tdalg::TDAlgorithm, model::Model, actions::Vector{Action}; T::Flo
 
     println("Starting SARSA algorithm...")
 
-    for i in ProgressBar(1:tdalg.iterations)
+    for i ∈ ProgressBar(1:tdalg.iterations)
         if i - 1 % 100 == 0
             initialize_state!(model.state)
         end

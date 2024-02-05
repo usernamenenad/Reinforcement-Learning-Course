@@ -1,6 +1,6 @@
 function GreedyPolicy(q::Q, state::State, actions::Vector{Action})::Action
     to_max::Dict{Action,Float64} = Dict{Action,Float64}()
-    for action in actions
+    for action ∈ actions
         to_max[action] = q[state, action]
     end
     return findmax(to_max)[2]
