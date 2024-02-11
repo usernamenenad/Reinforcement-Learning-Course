@@ -42,7 +42,7 @@ class SARSA(TD):
 
     def __discretise_state(self) -> State:
         """
-        Discretise the state.
+        Discretise state.
         """
         return State(
             round(self.__ss.x, round_prec),
@@ -66,21 +66,26 @@ class SARSA(TD):
         with alive_bar(iterations) as bar:
             for i in range(iterations):
                 if i % 100 == 0:
+                    s: State | None = None
+                    a: Action | None = None
+                    new_s: State | None = None
+                    new_a: Action | None = None
                     self.__ss = self.__initialize_ss()
-                s: State = self.__discretise_state()
-                a = policy.act(self.__q, s)
+
+                s: State = self.__discretise_state() if new_s is None else new_s
+                a: Action = policy.act(self.__q, s) if new_a is None else new_a
 
                 # Run the model
                 model(self.__ss, a, T)
 
                 if (
                     -x_threshold < self.__ss[0] < x_threshold
-                    and -o_threshold < self.__ss[0] < o_threshold
+                    and -o_threshold < self.__ss[2] < o_threshold
                 ):
                     # Discretise the state because of the Q dictionary
-                    new_s: State = self.__discretise_state()
-                    new_action = policy.act(self.__q, new_s)
-                    q_plus = self.__q[new_s, new_action]
+                    new_s = self.__discretise_state()
+                    new_a = policy.act(self.__q, new_s)
+                    q_plus = self.__q[new_s, new_a]
                     r = 10
                     self.__result[i] = True
                 else:
@@ -88,6 +93,8 @@ class SARSA(TD):
                     r = -10
                     self.__ss = self.__initialize_ss()
                     self.__result[i] = False
+                    new_s = None
+                    new_a = None
 
                 self.__q[s, a] = (1 - alpha) * self.__q[s, a] + alpha * (
                     r + gamma * q_plus
